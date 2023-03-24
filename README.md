@@ -2,6 +2,7 @@ Textanalyse in R: eine Einführung
 ================
 
 Course Dates: 27.-28. März 2023
+
 Kursleiter: [Johannes B. Gruber](https://www.johannesbgruber.eu/)
 
 # Introduction
@@ -63,10 +64,10 @@ statistical background where necessary. The schedule looks as follows:
 </div></td>
 <td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/4_dictionary-analysis.qmd">Dictionary methods</a></p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/8_Word_Embeddings_and_Deep_Learning.qmd</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/8_Word_Embeddings_and_Deep_Learning.qmd">Word Embeddings and Deep Learning</a></p>
 </div></td></tr>
   </tbody>
-  
+
   
 </table>
 </div>
