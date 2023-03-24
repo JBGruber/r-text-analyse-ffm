@@ -1,6 +1,8 @@
 Textanalyse in R: eine Einführung
 ================
-Johannes B. Gruber
+
+Course Dates: 27.-28. März 2023
+Kursleiter: [Johannes B. Gruber](https://www.johannesbgruber.eu/)
 
 # Introduction
 
@@ -41,27 +43,27 @@ statistical background where necessary. The schedule looks as follows:
   <tbody class="gt_table_body">
     <tr><td class="gt_row gt_right"><div class='gt_from_md'><p>09:00-10:30</p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#overview-background-and-some-theory">Overview, Background and some Theory</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/1_Theory.qmd">Overview, Background and some Theory</a></p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#text-correlations-and-regression-models">Text Correlations and Regression Models</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/5_Correlation_and_regression.qmd">Text Correlations and Regression Models</a></p>
 </div></td></tr>
     <tr><td class="gt_row gt_right"><div class='gt_from_md'><p>11:00:12:30</p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#r-basics-repetition">R Basics Repetition</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/2_R_basics.qmd">R Basics Repetition</a></p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#supervised-classification-methods">Supervised Classification Methods</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/6_supervised-learning.qmd">Supervised Classification Methods</a></p>
 </div></td></tr>
     <tr><td class="gt_row gt_right"><div class='gt_from_md'><p>14:00-15:30</p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#obtaining-text-data">Obtaining Text Data</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/3_Obtaining_Text_Data.qmd">Obtaining Text Data</a></p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#unsupervised-classification-methods">Unsupervised Classification Methods</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/7_unsupervised-learning.qmd">Unsupervised Classification Methods</a></p>
 </div></td></tr>
     <tr><td class="gt_row gt_right"><div class='gt_from_md'><p>16:00-17:30</p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#dictionary-methods">Dictionary methods</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/4_dictionary-analysis.qmd">Dictionary methods</a></p>
 </div></td>
-<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="#word-embeddings-and-deep-learning">Word Embeddings and Deep Learning</a></p>
+<td class="gt_row gt_left"><div class='gt_from_md'><p><a href="https://github.com/JBGruber/r-text-analyse-ffm/blob/main/8_Word_Embeddings_and_Deep_Learning.qmd</a></p>
 </div></td></tr>
   </tbody>
   
@@ -81,12 +83,11 @@ In the next window, select "Git":
 
 ![](media/wizard-2.png)
 
-Then copy the URL `https://github.com/JBGruber/python_for_r_users` into the URL field and select where to download the project to.
+Then copy the URL `https://github.com/JBGruber/r-text-analyse-ffm.git` into the URL field and select where to download the project to.
 
 ![](media/wizard-3.png)
 
 After clicking "Create Project", a new session should open.
-Navigate to the file "python-in-r.qmd" and open it.
 That's it!
 
 ## Install dependencies
@@ -108,5 +109,4 @@ update.packages(ask = FALSE, Ncpus = 4L)
 ```
 
 This uses 4 cores, you could also use more/less depending on your system.
-
 
