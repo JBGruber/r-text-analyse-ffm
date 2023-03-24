@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+render-all.sh
+*.html
+1_Theory_files
+2_R_basics_files
+3_Obtaining_Text_Data_files
+4_dictionary-analysis_files
+5_Correlation_and_regression_files

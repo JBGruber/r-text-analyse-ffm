@@ -1,0 +1,365 @@
+---
+title: "Session 1: Overview, Background and Some Theory"
+subtitle: "Textanalyse in R: eine Einführung"
+author: "Johannes B. Gruber"
+date: "2023-03-27"
+format: 
+  revealjs:
+    smaller: true
+    incremental: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  fig.align = 'center'
+)
+
+library(quanteda)
+library(quanteda.textmodels)
+library(quanteda.textplots)
+library(quanteda.textstats)
+library(tidyverse)
+
+
+# custom function
+print_df <- function(x, max_r = 50L, max_c = 50) {
+  if (is.dfm(x)) {
+    x <- x %>%
+      convert("data.frame")
+  }
+  max_r <- ifelse(nrow(x) > max_r, max_r, nrow(x))
+  max_c <- ifelse(ncol(x) > max_c, max_c, ncol(x))
+  x <- x[0:max_r, 0:max_c]
+  x %>% 
+    datatable(fillContainer = FALSE, rownames = FALSE, 
+              options = list(pageLength = 5, scrollX = "200px", dom = "t")) %>%
+    formatStyle(columns = 1:20, fontSize = "60%")
+}
+```
+
+## Text/Content Analysis in Social Science
+
+- Researchers have long recognised that much of what is social interaction is expressed through words.
+- Traditionally these texts are analysed using content analysis in one of several forms (e.g., Quantitative Content Analysis, Discourse Analysis or Hermeneutic Content Analysis).
+- The goal was to understand what actors are saying and writing and sometimes why they might say or write something.
+- The steps could involve theory/category building, classification of text and finding relations between texts/actors
+- But scholars struggle with volume: ***there are often simply too many relevant texts***.
+- At least linear increase of costs with larger text corpora (structured collections of text).
+
+## Promises of Automatic Content Analysis
+
+- *Systematic analysis* of large-scale text collections without massive funding support.
+- Depending on the method, results are available almost immediately
+- Perfect reliability in the sense that presented the same data and method, the computer will generate same results.
+
+## Pitfalls of Automatic Content Analysis: Four Principles
+
+1. All quantitative models of language are wrong—but some are useful
+2. Quantitative methods augment humans, not replace them
+3. There is no globally best method for automated text analysis
+4. Validate, Validate, Validate!
+- Problem with 4: The discipline is still young and validation methods are often not canonical or do not exist yet.
+
+## An overview of text as data methods
+
+```{r}
+library(magick)
+overview <- image_read_pdf("./data/2._An overview of text as data methods (Grimmer and Stewart 2013).pdf")
+image_resize(overview, geometry_size_percent(75))
+```
+
+(Grimmer and Stewart 2013, p.2 )
+
+## Classification of ACA approaches
+
+```{r}
+library(magick)
+overview <- image_read_pdf("./data/2._classification of ACA approaches.pdf")
+image_resize(overview, geometry_size_percent(75))
+```
+
+## Reducing Complexity: From Words to Numbers | The single most important concept in ACA
+
+- Principle: bag-of-words: ignoring word order & grammar (surprisingly good results)
+- Different names, the same concept: dfm (document-feature-matrix), dtm (document-term-matrix); tdm
+- Potential problem: homographs (although rarely important)
+- An example:
+  - The bandage was wound around the wound.
+  - The farm was cultivated to produce produce.
+  - The dump was so full that the workers had to refuse more refuse.
+  
+## DFM
+
+```{r message=FALSE}
+library(dplyr)
+library(quanteda)
+library(DT)
+text <- c("The bandage was wound around the wound",
+          "The farm was cultivated to produce produce.",
+          "The dump was so full that the workers had to refuse more refuse.")
+dfm <- text %>% 
+  corpus() %>% 
+  tokens() %>% 
+  dfm()
+dfm %>% 
+  print_df()
+```
+
+## Analysis example 1 | Dictionary Methods
+
+*Using the frequency of key words to determine a document's class*
+
+::: {.nonincremental}
+- **Category medicine:** *bandage, wound*
+- **Category farming:** *farm, produce*
+- **Category waste disposal:** *dump, refuse*
+:::
+
+```{r}
+dict <- list(
+  medicine = c("bandage", "wound"),
+  farming = c("farm", "produce"),
+  waste_disposal = c("dump", "refuse")
+)
+dfm %>% 
+  dfm_select(pattern = dict) %>% 
+  print_df()
+```
+
+## Analysis example 1 | Dictionary Methods
+
+
+```{r}
+dfm %>% 
+  dfm_lookup(dictionary(dict)) %>% 
+  print_df()
+```
+
+Result: text1 = medicine; text2 = farming; text3 = waste disposal
+
+But: we already know the result is not entirely correct. Why?
+
+Bonus info: if you plot this over time, you have a really simple time-frequency analysis.
+
+## Analysis example 2 | Keyness
+
+```{r}
+keyness_df <- dfm %>% 
+  dfm_subset(c(TRUE, TRUE, FALSE)) %>% 
+  dfm_group(groups = c(1, 2)) %>% 
+  textstat_keyness(measure = "chi2")
+print_df(keyness_df)
+```
+
+## Analysis example 2 | Keyness
+
+```{r}
+textplot_keyness(keyness_df, n = 30L, min_count = 1L)
+```
+
+## Analysis example 3 | Supervised Methods
+
+1. Some documents are sorted into categories by hand
+1. This training data is then used to train a statistical model
+1. The model is used to infer the categories of unseen text
+
+```{r}
+#| class: fragment
+data <- tibble(document = c("text1", "text2", "text3"),
+               class = c(1, 2, NA)) %>% 
+  left_join(convert(dfm, "data.frame"), by = c("document" = "doc_id"))
+  
+print_df(data)
+```
+
+## Analysis example 3 | Supervised Methods
+
+```{r echo=TRUE}
+library(quanteda)
+library(quanteda.textmodels)
+train <- c(TRUE, TRUE, FALSE)
+training_dfm <- dfm_subset(dfm, subset = train)
+test_dfm <- dfm_subset(dfm, subset = !train)
+
+model <- textmodel_nb(training_dfm, data$class[1:2])
+predict(model, newdata = test_dfm)
+```
+
+- **The** bandage **was** wound around **the** wound.
+- **The** farm **was** cultivated **to** produce produce.
+- **The** dump **was** so full that **the** workers had **to** refuse more refuse.
+
+## Analysis example 4 | Automated Clustering
+
+*Algorithms simultaneously estimate the categories and then classify documents into those categories.*
+
+```{r, echo=TRUE, eval=FALSE}
+convert(dfm, "data.frame") %>% 
+  select(-doc_id) %>%
+  dist() %>%
+  hclust() %>% # Hierarchical Clustering as a simple example
+  plot()
+```
+
+## Analysis example 4 | Automated Clustering
+
+```{r, eval=TRUE}
+convert(dfm, "data.frame") %>% 
+  select(-doc_id) %>%
+  dist() %>%
+  hclust() %>% # Hierarchical Clustering as a simple example
+  plot()
+```
+
+## Analysis example 5 | Scaling
+
+```{r echo=TRUE, fig.height=4}
+library(quanteda.textplots)
+textmodel_wordfish(dfm) %>% 
+  textplot_scale1d()
+```
+
+## Feature engineering | (AKA Preprocessing)
+
+- *"Feature engineering is the process of using domain knowledge to extract features from raw data via data mining techniques. These features can be used to improve the performance of machine learning algorithms."* [Wikipedia: Feature engineering](https://en.wikipedia.org/wiki/Feature_engineering)
+- The process of standardizing, removing or merging features can have substantial important implications for the results:
+  - positive: can improve performance by selecting only what is important.
+  - negative: can lead to over-fitting or important features are removed by accident.
+
+## Feature engineering | (AKA Preprocessing)
+
+Most common steps:
+
+  - Removing *Punctuation, Numbers and other symbols* (e.g., @ or #).
+  - Grouping word forms via *Stemming/Lemmatisation* (am, are, is $\Rightarrow$ be; car, cars, car's, cars' $\Rightarrow$ car).
+  - Removing *Stopword* which are unlikely to convey much information (e.g., the, was, to).
+  - Removing *Infrequent Terms* to reduce size of vocabulary and/or remove terms that do not contribute to analysis.
+  - Including *n-grams* to capture important/otherwise ambiguous multiword expressions (e.g., “national security”vs “national debt”). 
+  - *Compounding* is similar to *n-grams* but only a specific list of multiword expressions is used (e.g., "New York" $\Rightarrow$ "New_York")
+
+## Feature engineering | (AKA Preprocessing)
+
+```{r echo=TRUE}
+library("quanteda")
+text <- c("The bandage was wound around the wound.",
+          "The farm was cultivated to produce produce.",
+          "The dump was so full that the workers had to refuse more refuse.")
+dfm_processed <- tokens(
+  text,
+  remove_numbers = TRUE, remove_punct = TRUE,
+  remove_symbols = TRUE, remove_separators = TRUE,
+  remove_twitter = TRUE, remove_hyphens = TRUE,
+  remove_url = TRUE, ngrams = 1
+) %>% 
+  tokens_compound(pattern = phrase("the wound")) %>% 
+  dfm(remove = stopwords())
+```
+
+## Feature engineering | (AKA Preprocessing)
+
+```{r}
+dfm_processed %>% 
+  print_df()
+```
+
+## Feature engineering | (AKA Preprocessing)
+
+For dictionary methods this has no implication, unless you remove words defined in the dictionary.
+
+## Feature engineering | (AKA Preprocessing)
+
+Repeating supervised classification with the preprocessed dfm:
+
+```{r}
+#| echo: true
+train <- c(TRUE, TRUE, FALSE)
+training_dfm <- dfm_subset(dfm_processed, subset = train)
+test_dfm <- dfm_subset(dfm_processed, subset = !train)
+
+model <- textmodel_nb(training_dfm, data$class[1:2])
+predict(model, newdata = test_dfm)
+```
+
+The result has changed from text3 being classified as 1 instead of 2.
+
+## Feature engineering | (AKA Preprocessing)
+
+Repeating clustering with the preprocessed dfm:
+
+```{r}
+convert(dfm_processed, "data.frame") %>% 
+  select(-doc_id) %>%
+  dist() %>%
+  hclust() %>% # Hierarchical Clustering as a simple example
+  plot()
+```
+
+The result is very similar except from the scale (i.e., distance between text) as texts seem to have become more similar.
+
+## Word Embedding
+
+- Essentially a special kind of preprocessing, which transforms text into vectors of the same length
+- Different sources for embedding (e.g., you can train your own with topic models)
+- Models that were trained on vast corpora a freely available (e.g., Word2Vec, GloVe, fastText)
+
+## Word Embedding | GloVe Example
+
+```{r}
+#| echo: true
+get_glove <- function(file, dimensions = c(50, 100, 200, 300)) {
+  # don't re-download files if present
+  if (!file.exists(file)) {
+    cache_loc <- file.path(dirname(file), "glove.6B.zip")
+    if (!file.exists(cache_loc)) {
+      curl::curl_download("http://nlp.stanford.edu/data/glove.6B.zip", cache_loc, quiet = FALSE)
+    }
+    unzip(cache_loc, files = basename(file), exdir = "data")
+  }
+  # read and process glove vectors
+  df <- data.table::fread(file, quote = "")
+  colnames(df) <- c("term", paste0("dim", seq_len(ncol(df) - 1)))
+  return(df)
+}
+glove_df <- get_glove("data/glove.6B.100d.txt")
+```
+
+```{r}
+print_df(glove_df, max_c = 101L)
+```
+
+
+## Word Embedding | GloVe Example
+
+```{r}
+#| echo: true
+dfm_embed <- function(dfm, embedding_vectors) {
+  terms <- embedding_vectors$term
+  embedding_vectors$term <- NULL
+  mat <- as.matrix(embedding_vectors)
+  rownames(mat) <- terms
+  as.dfm(
+    # matrix multiplication is used as one potential way of creating document
+    # embeddings. You can also use, e.g., the average value of word embeddings
+    # for words per document
+    dfm %*% mat[colnames(dfm), ]
+  )
+}
+dfm_glove <- dfm_embed(dfm, glove_df)
+```
+
+```{r}
+print_df(dfm_glove, max_c = 101L)
+```
+
+## Word Embedding | GloVe Example
+
+```{r}
+training_dfm <- dfm_subset(dfm_glove, subset = train)
+test_dfm <- dfm_subset(dfm_glove, subset = !train)
+model <- textmodel_svmlin(training_dfm, data$class[1:2])
+predict(model, newdata = test_dfm)
+```
+
+

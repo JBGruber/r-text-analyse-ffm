@@ -1,0 +1,351 @@
+---
+title: "Session 3: Obtaining Text Data"
+subtitle: "Textanalyse in R: eine Einführung"
+author: "Johannes B. Gruber"
+date: "2023-03-27"
+format:
+  html:
+    toc: true
+    toc-location: left
+bibliography: references.bib
+---
+
+# Introduction
+
+In this session we focus on a task that often gets overlooked in introductions to text analysis: obtaining the data you want to work with.
+Of course, there is a myriad of data sources and we can't cover every possible way to retrieve and clean your specific data source.
+But we will focus on a few best practices and examples.
+Specifically we discuss how to read different file formats into `R`, how to web-scrape simple websites and how to get data from twitter.
+
+# File Formats
+
+The file format tells us how the information is stored inside the file.
+Usually the file format is revealed to us through the file extension (e.g., "file.txt" -> the extension is "txt" which means it is a text file).
+Annoyingly, Windows hides the file extension by default since the last few iterations of the operating system.
+I would suggest you change that default if you can't see the file extensions already ([see here for an how-to](https://support.winzip.com/hc/en-us/articles/115011457948-How-to-configure-Windows-to-show-file-extensions-and-hidden-files)).
+
+From my experience your data will probably come in one of the formats below
+
+- **txt**: simple text file; use e.g., built-in `readLines()` command; often needs to be *parsed*, that means brought into a more useful structure first; if you are lucky, someone has written a function/package to parse your specific txt already (e.g., `LexisNexisTools::lnt_read()` for files from the newspaper archive LexisNexis or `rwhatsapp::rwa_read()` for chat logs from WhatsApp); watch out for file encoding! 
+- **docx**: The format used by Microsoft Word; use e.g., `readtext()` from the `readtext` package; usually needs to be *parsed* as well.
+- **rft**: stands for Rich Text Format, which is the predecessor of/alternative for docx; you might consider opening it in Word and saving it as docx, otherwise use `read_rtf()` from the `striprtf` package.
+- **csv**: stands for Comma-separated values, which is basically a text file in which values are stored separated by comma to represent rows and columns; one of the formats natively supported by `R` via the `read.csv()` command; recommendation, however, to use either `import()` from the `rio` package or `fread()` from `data.table` as they have better defaults and manage to get it right more often; problems can arise from different encodings, quote symbols like `"`, different separators (, or ; or tab), or an inconsistent number of columns.
+- **xlsx**: The format used by Microsoft Excel for rectangular data; use `import()` from the `rio` package or `read_xlsx()` from `readxl` (which is basically the same but gives you more options to fine-tune); problems arise from data stored in wrong class (e.g., numbers stored as date or character) and the fact that a file can contain multiple sheets (in which case you have to make sure you read in the correct one). 
+- **pdf**: stands for Portable Document Format; relevant data is usually stored in two layers: a picture of text you see and underlying text in machine readable format; if the latter layer is missing, you have to perform optical character recognition (OCR); you can check by trying to select text in the document and copying it; if the PDF contains text and pictures use `pdf_text()` or `pdf_data()` from `pdftools`; otherwise use `pdftools::pdf_ocr_text()`; if the file is password protected, there are websites which can remove this protection (assuming you were given permission from the owner of the PDF to remove the password).
+- **json**: a format which can contain complicated nested objects; usually you encounter this when receiving data from API calls; you can try to read it using `stream_in()` or `read_json()` from the `jsonlite` package or reading it via `readLines()` and trying to parse the complicated mess; if you are lucky, someone has wrote a function to parse you specific json already (e.g., `rtweet::parse_stream()` for files from Twitter).
+- **xml**: stands for Extensible Markup Language; similar to json as it embeds meta information along with the text data; I never encountered it in real life but if you do, the `xml2` package is the one you should usually use.
+- **html**: the format most of the internet is written in; you encounter this when you download a website and more often during webscraping; some examples below.
+
+Examples:
+
+```{r}
+txt <- readLines("./data/LexisNexis_example.TXT")
+head(txt)
+```
+
+Not so useful.
+Instead we can use:
+
+```{r}
+library(LexisNexisTools)
+dat <- lnt_read("./data/LexisNexis_example.TXT")
+df <- lnt_convert(dat)
+df
+```
+
+This format is usually what we want:
+One column of text with metadata stored alongside.
+That does not necessarily mean that we have to have a `data.frame` though.
+`quanteda` for example stores this information in a `corpus` object:
+
+```{r}
+library(quanteda)
+corp <- lnt_convert(dat, to = "quanteda")
+docvars(corp)
+texts(corp) %>% 
+  head(3)
+```
+
+One example for TXT files which are a lot of fun to play around with are WhatsApp chat logs.
+You can follow this introduction I wrote a while ago to practice: <https://github.com/JBGruber/rwhatsapp#demo>
+
+Here is an example of a docx file:
+
+```{r}
+df <- readtext::readtext("./data/Notes.docx")
+df
+```
+
+In contrast, csv and xlsx data usually already come in a table format
+
+```{r}
+csv <- data.table::fread("https://raw.githubusercontent.com/kbenoit/ITAUR-Short/master/data/inaugTexts.csv")
+head(csv)
+```
+
+Notice that we read this one directly from a URL without downloading it.
+This is supported by many `R` function (but not all).
+
+One of the most flexible and also most annoying formats to work with is json.
+Here is an example:
+
+```{r}
+#| error: true
+json <- jsonlite::read_json("https://github.com/kbenoit/ITAUR-Short/raw/master/data/sotu.json")
+```
+
+You often get this error when trying to read json files.
+If you look at it, you see that newlines where used in this.
+This means we have a JSON Lines file that uses one line per data row.
+We can read this like so:
+
+```{r}
+json <- jsonlite::stream_in(con = url("https://github.com/kbenoit/ITAUR-Short/raw/master/data/sotu.json"))
+head(json)
+```
+
+The file is converted to a `data.frame` which is done automatically where possible.
+Otherwise you will get a list that might need a lot of data wrangling before it becomes useful.
+
+A tricky one is PDF files.
+I would highly recommend `pdftools` to do the job, but it does not always work well...
+
+```{r}
+library(pdftools)
+download.file("https://www.justice.gov/storage/report.pdf", "./data/report.pdf")
+mueller <- pdf_text("./data/report.pdf")
+head(mueller)
+```
+
+This imports every page as one item of a character object.
+If you want a finer grained information about the visual context of words, you can use another command from the same package:
+
+```{r}
+mueller2 <- pdf_data("./data/report.pdf")
+mueller2[[1]]
+```
+
+The structure of this object is that each page is a `data.frame` with each row containing a word with some extra information about it (width, height of the word & position on page from left upper corner of the page).
+This is useful if you want to extract e.g., paragraphs from a page (which only really works if there is extra space after a paragraph).
+
+# Two simple web-scraping examples
+
+## Getting information about a movie from IMDB:
+
+```{r}
+library(rvest)
+lego_movie <- read_html("http://www.imdb.com/title/tt1490017/")
+
+rating <- lego_movie %>% 
+  html_nodes("strong span") %>%
+  html_text() %>%
+  as.numeric()
+rating
+
+cast <- lego_movie %>%
+  html_nodes("#titleCast .primary_photo img") %>%
+  html_attr("alt")
+cast
+
+poster <- lego_movie %>%
+  html_nodes(".poster img") %>%
+  html_attr("src")
+poster
+```
+
+## Scraping news from Breitbart:
+
+First step: obtain the URLs of relevant articles using Google with search operator "site:" to limit the search to Breitbart news:
+
+![](media/breitbart_search.png)
+
+```{r}
+library(stringr)
+library(tibble)
+
+link <- "https://www.breitbart.com/europe/2020/02/22/boris-johnson-reveals-new-brexit-blue-passport-design/"
+
+html <- read_html(link)
+
+headline <- html %>%
+  html_nodes("header") %>%
+  html_nodes("h1") %>%
+  html_text()
+
+time <- html %>%
+  html_nodes("time") %>%
+  html_attrs() %>%
+  sapply(function(x) x["datetime"]) %>%
+  as.POSIXct(format = "%Y-%m-%dT%H:%M:%S", tz = "Z")
+
+author <- html %>%
+  html_nodes("[name=\"author\"]") %>%
+  html_attr("content")
+
+article <- html %>%
+  html_nodes("[class=\"entry-content\"]") %>%
+  html_text() %>%
+  str_replace("\\s+", " ") %>%
+  trimws()
+
+bb <- tibble(
+  source = link,
+  time = time,
+  author = ifelse(length(author) == 0, "", author),
+  headline = headline,
+  article = article
+)
+```
+
+A great way to get started with scraping is by learning more about CSS selectors with the game [CSS Diner](https://flukeout.github.io/).
+
+I'm collecting scrapers, so if you feel confident enough to write your own, have a look at my vignette for developers [here](https://github.com/JBGruber/paperboy/blob/main/vignettes/For_Developers.Rmd)
+
+# Data from Twitter
+
+Twitter was the last of the big social media companies which offered free and relatively broad access to their data.
+This changed after the acquisition of the company through Elon Musk, but there are still some open API endpoints that you can use.
+
+As Facebook has basically shut down access to data for all researcher but the ones employed by them and other platforms have taken a similar approach, Twitter is the last one that gives you some sort of access to its data.
+Even though several packages exist to get data from Twitter the choice for the right package is pretty obvious: `rtweet`.
+This is what we set up in the following (see [docs.ropensci.org/rtweet](https://docs.ropensci.org/rtweet/) for reference):
+
+The first thing we need to do before we can use the API is to get an access token.
+This should be convenient with:
+
+```{r}
+#| eval: false
+rlang::check_installed("rtweet")
+auth_setup_default()
+```
+
+It is unclear at the moment what still works and what will work in the future. 
+So we will only cover the two most interesting functions:
+The first is to search for tweets.
+This will get you ***a random sample*** of all tweets containing the pattern.
+You can include words, phrases, hashtags, twitter handles ("@realDonaldTrump") and so on
+The function is quite limited though and additionally to only returning a sample, you can only go back a few days into the past.
+
+```{r}
+#| eval: false
+library(rtweet)
+rt <- search_tweets(
+  "#rstats", n = 180, include_rts = TRUE
+)
+head(rt)
+```
+```{r}
+#| echo: false 
+# I don't run the step above while knitting since it would take too long and
+# retrieve different results each time. Instead I only ran it once and saved the
+# results with saveRDS(potus, "./data/potus_tweets.RDS"). Instead I load the saved
+# data when knitting. This is done for all twitter data below.
+rt <- readRDS("./data/search_tweets.RDS")
+head(rt)
+```
+
+I really like the format this comes in as it is already almost perfect to do text analysis on the text column (note though that for retweets there is also text in the `retweet_text` column and for quotes you have to incorporate the `quoted_text` column).
+
+The second one is `get_timeline()` which will retrieve all tweets from a specific account.
+This seems to be the least limited in terms of arbitrary restrictions but of course you can only analyse one specific person or organisation this way:
+
+```{r} 
+#| eval: false 
+potus <- get_timeline("@POTUS", n = 3200)
+# we save this file for later use as an RDS file
+saveRDS(potus, file = "./data/potus_tweets.RDS")
+head(potus)
+```
+
+
+```{r}
+#| echo: false 
+potus <- readRDS("./data/potus_tweets.RDS")
+head(potus)
+```
+
+
+Especially the `get_timeline` command will get you many tweets you might not be interested in as most people will not just post about one, but many topics, and you might not be interested in all of them.
+It therefore often makes sense to subset your Twitter (or really most) data using one or multiple keywords.
+A very simple way to do this would be:
+
+```{r}
+library(tidyverse)
+potus %>% 
+  filter(str_detect(text, "cat")) %>% 
+  select(created_at, text)
+```
+
+However, this version has a few shortcomings.
+First, it only searches in the tweet text, which is incomplete for quotes and retweets.
+Second, word boundaries are ignored.
+That means if a word contains "cat", like "appli**cat**ions", it is included accidentally.
+And third, how do you search for multiple words?
+
+We will take care of the third problem in the next session.
+For now, let's look if POTUS actually used the word cat or retweeted anyone who did:
+
+```{r}
+potus %>%
+  filter(str_detect(full_text, "\\bcat\\b"))
+```
+
+# Data from Kaggle
+
+[![](media/kaggle.png)(https://www.kaggle.com/datasets/konradb/iran-protests-2022-tweets?resource=download)
+
+```{r}
+file_iran_tweets <- "data/iran_tweets.csv.zip"
+if (!file.exists(file_iran_tweets)) {
+  curl::curl_download("https://www.dropbox.com/s/kymkteu6vpf85ef/iran_tweets.csv.zip?dl=1", file_iran_tweets)
+}
+iran_tweets <- rio::import(file_iran_tweets)
+```
+
+```{r}
+iran_tweets_clean <- iran_tweets %>% 
+  mutate(created_at = lubridate::ymd_hms(date),
+         date = as.Date(created_at))
+```
+
+```{r}
+iran_tweets_clean %>% 
+  count(date) %>% 
+  ggplot(aes(x = date, y = n)) +
+  geom_line()
+```
+
+
+# Data from reddit
+
+```{r}
+#| eval: false
+rlang::check_installed("PSAWR")
+library(PSAWR)
+gpt_submissions <- search_submissions(q = "ChatGPT", subreddit = "MachineLearning", size = 500)
+saveRDS(gpt_submissions, "./data/gpt_submissions.rds")
+```
+
+```{r}
+#| echo: false 
+gpt_submissions <- readRDS("./data/gpt_submissions.rds")
+head(gpt_submissions)
+```
+
+```{r}
+#| eval: false
+browseURL(paste0("https://www.reddit.com/r/", gpt_submissions$permalink[1]))
+```
+
+```{r}
+gpt_submissions %>% 
+  mutate(type = case_when(
+    selftext == "" ~ "empty",
+    selftext == "[removed]" ~ "removed",
+    TRUE ~ "text",
+  )) %>% 
+  count(month = lubridate::floor_date(created_utc, "months"),
+        type) %>% 
+  ggplot(aes(x = month, y = n, fill = type)) +
+  geom_col(position = "dodge")
+```

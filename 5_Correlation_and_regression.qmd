@@ -1,0 +1,358 @@
+---
+title: "Session 5: Text Correlations and Regression Models"
+author: "Alexandra Ils & Johannes B. Gruber"
+subtitle: "Textanalyse in R: eine Einführung"
+date: "2023-03-28"
+format:
+  html:
+    toc: true
+    toc-location: left
+bibliography: references.bib
+---
+
+# Aim of this session:
+
+- Learn how to calculate correlation of words
+- Visualize the results
+
+# Correlation
+
+Correlation networks of words can tell us something about the context of words, which we have not yet discovered. While frequency counts can give a first information that is useful for interpreting the data, correlation of words can give us us a more in-depth view of our data. What words do often appear together? What conclusions can this offer to our research question? 
+
+## Prepare the data
+
+In this session we will first do the analysis using the `tidytext` as there is an excellent explanation of what is going on here in the companion book to this package ([see](https://www.tidytextmining.com/ngrams.html#visualizing-a-network-of-bigrams-with-ggraph)).
+
+```{r message=FALSE, warning=FALSE}
+## Load the packages
+library(tidytext)
+library(widyr)
+library(tidyverse); theme_set(theme_minimal())
+library(quanteda)
+```
+
+As data source for this session we use Twitter dataset on the Iranian protests from Kaggle (we used this in session 3, so please go back and download it if you haven't done so yet):
+
+```{r}
+set.seed(1)
+iran_tweets_raw <- rio::import("data/iran_tweets.csv.zip") %>% 
+  # we take a 10% random sample to make the computations faster, you can have a
+  # look at the compiled version to see the real results
+  sample_frac(size = 0.1) %>% 
+  as_tibble()
+```
+
+Before doing the actual analysis we do some cleaning and preprocessing (as always).
+
+```{r}
+iran_tweets <- iran_tweets_raw %>%
+  mutate(
+    # first, get proper date and timestamps
+    created_at = lubridate::ymd_hms(date),
+    date = as.Date(created_at),
+    # second, we make a unique status ID since one is missing from this data. I
+    # use the hash function from rlang, which turns data into strings
+    status_id = map_chr(paste0(created_at, text, user_name), rlang::hash))
+
+iran_tweets
+```
+
+For this analysis it makes sense to remove stopwords (words which are used often in texts but only contain little meaning).
+Keeping the words would obscure our correlations, as we would get high correlations containing stopwords and words of interest.
+This would lead to a high number of more connections that are most likely unimportant to use. Second, keeping stopwords would drive up the computing time.
+Therefore, we will delete stopwords.
+We also remove numbers and URLs, which are hard to make sense of out of context.
+
+```{r}
+iran_tweets_tidy <- iran_tweets %>% 
+  mutate(text = str_remove_all( # remove URls from the text
+    text, 
+    # this regular expression finds URLs. I copied it from here
+    # https://stackoverflow.com/a/56974986/5028841
+    "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+  )) %>%   
+  unnest_tokens(
+    output = "word",
+    input = "text",
+    token = "words"
+  ) %>% 
+  filter(!word %in% stopwords::stopwords()) %>%  # Get rid of stopwords
+  filter(!(grepl("\\d", word))) # Get rid of numbers
+
+iran_tweets_tidy %>% 
+  select(user_name, word)
+```
+
+This removed `r nrow(iran_tweets_tidy) - nrow(iran_tweets_tidy)` rows from the `data.frame`, meaning that number of features is now gone.
+
+To check out this corpus a bit let's look at the most often occurring words:
+
+```{r}
+top_words <- iran_tweets_tidy %>% 
+  count(word, sort = TRUE)
+top_words
+```
+
+We can also check the occurrence some words that seem important over the weeks in our sample:
+
+```{r}
+library(ggplot2)
+important_words <- c("mahsaamini", "iranrevolution", "iran", " regime", 
+                     "islamic", "iranian", "iranprotests", "freedom", "women") 
+iran_tweets_tidy %>% 
+  filter(word %in% important_words) %>% 
+  mutate(date = lubridate::floor_date(created_at, "months")) %>% 
+  count(word, date) %>% 
+  group_by(date) %>% 
+  mutate(pct = n / sum(n)) %>% 
+  ggplot(aes(x = date, y = pct, fill = word)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+## Perform correlation
+
+Before we start with that data, let's look at some theory behind correlation first.
+We are going to use the *phi coefficient* which measures how much more likely it is that either both word X and word Y appear, or neither do, than one appears without the other. Consider this table:
+
+```{r}
+#| echo: false
+text_tbl <- tibble(
+  Items = c("Has Word X", "No word X", "Total"),
+  Has_Word_Y = c("n_11", "n_01", "n_.1"),
+  No_Word_Y = c("n_10", "n_00", "n_.0"),
+  Total = c("n_1.", "n_0.", "n")
+)
+text_tbl
+```
+
+Here, ${n_{11}}$ represents the number of documents where word X *and* word Y appear
+${n_{00}}$ represents the number where neither appears.
+${n_{10}}$ and ${n_{01}}$ represent cases where one of the words appear, but not the other. 
+The phi-coefficient then is represented by this formula:  
+
+$\phi = \frac{n_{11} n_{10} - n_{10} n_{01}}{\sqrt{n_1. n_0. n_.0 n_.1}}$
+
+Correlation among words is measured in a binary form---either the words appear together or they do not. Therefore, the phi-coefficient seems the best choice.
+
+Let's consider 10 Tweets as an example:
+
+```{r}
+example_tweets_df <- iran_tweets_tidy %>%
+  filter(status_id %in% c("d377750f36b566d0fdd3af5f53e6e45f", "9b82b10ca54895de312630b83bb8cc12", 
+                          "e776f91ab2e743fafe1677d332344a92", "4b11035f7d97e9b24e84d92018511a51", 
+                          "d56b9573d1042f55c540a5855503da86", "09750f7bd47ae6e3530d876daad6d446", 
+                          "f290a6489411154ce8e6fdc10bd4e299", "2b62022dfd121bbc53e72bc5770d2f02", 
+                          "d14149ebe1ad74a952341e5d5a4e77d9", "463fb69da0b7e877469dfc9694f5bc7e"))
+
+example_tweets_dfm <- example_tweets_df %>% 
+  count(word, status_id) %>% 
+  cast_dfm(status_id, word, n) %>% 
+  dfm_keep(c("us", "join", "solidarity", "protests", "special")) %>%
+  quanteda::convert("data.frame")
+
+example_tweets_dfm
+```
+
+We measure the correlation with the `cor.test` function, which tests for association/correlation between paired samples:
+
+```{r}
+cor.test(example_tweets_dfm$protests, example_tweets_dfm$special)
+```
+
+Instead of turning the tidy data into a matrix first, we can also use `pairwise_cor` directly to perform the same test on all words:
+
+```{r}
+example_tweets_df %>%  
+  pairwise_cor(word, status_id, sort = TRUE) %>% # find the correlation between words 
+  filter(item1 %in% "protests",
+         item2 %in% "special") # filter out rows where there is no correlation
+```
+
+
+We could run the correlation on the entire sample, which would lead to a very high number of matches, which would be hard to make sense of though.
+However, we are not usually interested in all words, but rather in broader patterns.
+So we can use the `top_words` data from above to select only the 250 most prevalent ones:
+
+```{r message=FALSE}
+correlations <- iran_tweets_tidy %>% 
+  filter(word %in% top_words$word[1:250]) %>%  # only take the 100 top words into account
+  pairwise_cor(word, status_id, sort = TRUE) %>% # find the correlation between words 
+  filter(!is.na(correlation)) # filter out rows where there is no correlation
+correlations
+```
+
+## Plot the network of our most important words
+
+We can go through the table and would find some interesting connections for sure, but let's look at a nice network plot, since correlations can be easily plotted as networks with the words being nodes and the strenght of correlations forming the edges.
+
+```{r message=FALSE, warning=FALSE}
+## load packages
+library(tidygraph)
+library(ggraph)
+```
+
+We can work with `tidygraph` to get this into a graph object:
+
+```{r}
+highest_cor_graph <- correlations %>% 
+  filter(correlation > 0.15) %>% 
+  as_tbl_graph()
+highest_cor_graph
+```
+
+Under the hood, a graph object consists of two data.frames: one containing the node (in this case the word) one containing the edges (so which words have a connection).
+Both data.frames can be altered, for example to add more attributes about nodes and edges.
+In our case the only attribute we have is the size of the correlation, stored in the edge data.frame.
+
+Using this new object we can easily plot the correlations:
+
+```{r}
+highest_cor_graph %>% 
+  ggraph(layout = "graphopt") + #start plot
+  geom_node_point(aes(color = name), size = 5, show.legend = FALSE) + # set nodes, color depends on item1, size of nodes should always be 5
+  geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) + #include edges, which are based on value of correlation
+  geom_node_text(aes(label = name), repel = TRUE) + #include words in our graph
+  theme_void() #Set white background
+```
+Using the command `ggsave`, we can save this as a PDF, which is often easier to look at with big plots, since you can zoom in:
+
+```{r eval=FALSE}
+ggsave("5_network_plot.pdf", width = 12, height = 12)
+```
+
+Note that `ggsave` saves the last plot you did by default. Find out more about the function with `?ggsave`.
+
+Why does this matter? 
+Sometimes the bag-of-words strategy does not work well as two words essentially for one term. Correlations are a good way to find so-called n-grams, meaning bigrams (e.g., "human_right") trigrams (e.g., "The United States") that you should concatenate before preprocessing (e.g., with `unnest_tokens`).
+Besides that, it makes the point that text data can be explored by turning it into numbers :)
+
+# Regression
+
+In this section, we will use supervised machine learning (SML) to predict continuous values that are associated with text data.
+SML can be divided into two types
+
+- A* **classification** model predicts a class label or group membership.
+- A* **regression** model predicts a numeric or continuous value.
+
+Most people think about classification when they hear SML, but it is actually possible to use standard algorithms that you would usually think of as statistics to predict continuous rather than categorical variables.
+In the Iran dataset, the date comes to mind as something we could try to predict.
+Let's have a look:
+
+```{r}
+iran_tweets_tidy %>% 
+  distinct(status_id, .keep_all = TRUE) %>% 
+  count(date = lubridate::floor_date(date, "months")) %>% # used to make plot easier to read
+  ggplot(aes(x = date, y = n)) +
+  geom_col() +
+  labs(x = NULL, y = NULL)
+```
+
+To make the variable easier to interpret, we convert the date into days since the first tweet using a small function:
+
+```{r}
+day_diff <- function(dates) {
+  first_date <- min(dates)
+  as.integer(dates - first_date, units = "days")
+}
+
+# let's test this
+day_diff(as.Date(c("2023-01-01", "2023-02-01")))
+```
+
+
+```{r}
+iran_tweets_tidy_mc <- iran_tweets_tidy %>% 
+  mutate(day_nr = day_diff(date))
+
+iran_tweets_tidy_mc %>% 
+  distinct(status_id, .keep_all = TRUE) %>% 
+  count(day_nr) %>% 
+  ggplot(aes(x = day_nr, y = n)) +
+  geom_col() +
+  labs(x = NULL, y = NULL)
+```
+
+It's not as easy to look at, but will work for our purposes.
+Next, we need to select some independent variables.
+I use the 1,000 most prevalent words and turn our long format data into the wide format the regression function expects:
+
+```{r}
+top_words_chr <- top_words %>% 
+  slice_head(n = 1000) %>% 
+  pull(word)
+
+iran_tweets_tidy_mc_dfm <- iran_tweets_tidy_mc %>% 
+  filter(word %in% top_words_chr) %>% 
+  count(word, status_id, day_nr) %>% 
+  pivot_wider(names_from = word, values_from = n, values_fill = 0)
+iran_tweets_tidy_mc_dfm
+```
+
+The idea of machine learning is to predict some new cases.
+We can evaluate the performance of a model by removing some cases beforehand and then testing the model against the true value of these test cases.
+
+```{r}
+set.seed(1)
+training_ids <- iran_tweets_tidy_mc_dfm %>% 
+  slice_sample(prop = 0.8) %>% 
+  pull(status_id)
+
+training_data <- iran_tweets_tidy_mc_dfm %>% 
+  filter(status_id %in% training_ids)
+
+test_data <- iran_tweets_tidy_mc_dfm %>% 
+  filter(!status_id %in% training_ids)
+```
+
+We use the normal `lm()` function on the data with `day_nr` as dependant and everything else (except status_id) as independant variables:
+
+```{r}
+model <- lm(day_nr ~ ., data = select(training_data, -status_id))
+```
+
+One interesting side effect of this is that the coefficients tell us which words can be used to predict an early or late tweet:
+
+```{r}
+coef_df <- coef(model) %>% 
+  tibble(coef = names(.), value = .) %>% 
+  filter(coef != "(Intercept)")
+
+coef_df %>% 
+  arrange(-value)
+```
+
+The word "march" and "february" predict later tweets, which makes sense given that the latest tweets that were collected are from March.
+"mekterrorists", however, is an interesting one, suggesting that this organisation (which advocates overthrowing the government of Iran) has only been discussed more recently.
+
+```{r}
+coef_df %>% 
+  arrange(value)
+```
+
+At the other side of the spectrum we see several of the hashtags used at the start of the protests.
+
+To evaluate the model, we predict values for day in the test set, using the words of the texts in there and the model.
+We then plot the predicted values against the true ones:
+
+```{r}
+#| fig-width: 7
+#| fig-height: 7
+test_data_predict <- test_data %>% 
+  mutate(day_nr_predict = predict(model, newdata = select(test_data, -status_id)))
+
+test_data_predict %>%
+  ggplot(aes(x = day_nr, y = day_nr_predict)) +
+  geom_point(alpha = 0.3) +
+  geom_abline(lty = 2, color = "firebrick", linewidth = 1.5) +
+  labs(
+    x = "Truth",
+    y = "Predicted Day",
+    color = NULL,
+    title = "Predicted and true days for tweets about #IranProtests2022"
+  )
+```
+
+We can see that the fit is not great, with some negative day values and quite a bit of mis-prediction.
+But we can still see a trend and that the model is actually predicted something and does not return random results.
+Given that language does not shift that dramatically over time, this is still quite interesting.
