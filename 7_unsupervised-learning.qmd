@@ -1,0 +1,445 @@
+---
+title: "Session 7: Unsupervised Machine Learning"
+author: "Johannes B. Gruber"
+subtitle: "Textanalyse in R: eine Einführung"
+date: "2023-03-28"
+format: html
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, 
+  message = FALSE
+)
+library(tidyverse); theme_set(theme_minimal())
+```
+
+# Introduction {#introduction}
+
+LDA, which stands for Latent Dirichlet Allocation, is one of the most popular approaches for probabilistic topic modeling.
+The goal of topic modeling is to automatically assign topics to documents without requiring human supervision.
+Although the idea of an algorithm figuring out topics might sound close to magical (mostly because people have too high expectations of what these 'topics' are), and the mathematics might be a bit challenging, it is actually really simple fit an LDA topic model in R.
+
+A good first step towards understanding what topic models are and how they can be useful, is to simply play around with them, so that's what we'll do first.
+
+# Playful exploration^[heavily influenced by this piece: https://medium.com/@lettier/how-does-lda-work-ill-explain-using-emoji-108abf40fa7d] {#playful-exploration}
+
+Open the page <https://lettier.com/projects/lda-topic-modeling/> (if
+possible, in Firefox)
+
+Example Docs:
+
+1.  🐭 🐭 🐭 🐭 🐭 🐭 🐭 🐭 🐭 🐭
+2.  🐱 🐱 🐱 🐱 🐱 🐱 🐱 🐱 🐱 🐱
+3.  🐶 🐶 🐶 🐶 🐶 🐶 🐶 🐶 🐶 🐶
+4.  🐭 🐭 🐭 🐭 🐭 🐭 🐭 🐭 🐭 🐭 🐱 🐱 🐱 🐱 🐱 🐱 🐱 🐱 🐱 🐱 🐶 🐶 🐶
+    🐶 🐶 🐶 🐶 🐶 🐶 🐶
+
+On top, the texts are turned into a document feature matrix.
+
+![](media/lda-dfm.png)
+
+What LDA does is essentially to reduce the dimensions of a text into a set of 'topics' that are easier to interpret.
+It then expresses the relation between cases and topics, as well as variables and topics in two matrices.
+If you have used PCA, MDS or factor analysis before, this is essentially the same process.
+
+The first matrix describes the probability a feature belongs to a topic.
+We call this the feature-topic-matrix.
+
+![](media/lda-ftm.png)
+
+The second table describes does the same, but with documents.
+We call this the document-term-matrix.
+
+![](media/lda-dtm.png)
+
+This case makes it pretty clear: mice belong to the first topic, cats belong to the second, dogs belong to the third topic.
+The first document has a high probability to belong to the first topic, because it is full of mice.
+The second document has a high probability to belong to the second topic, because it is full of cats.
+The third document has a high probability to belong to the third topic, because it is full of dogs.
+
+What makes LDA often seem magical, is how well it works for text.
+This is because the underlying assumptions fit the statistical features of document collections quite well, leading to meaningful and interpretable categories that make it easy to explore and summarise what is happening in text.
+
+The short example above shows the three broad steps of topic modelling:
+
+1.  Create a document-feature-matrix from your documents (and preprocess it)
+2.  Fit the topic model
+3.  Analyze (and validate) the results
+
+Before we go on, here are a few things I want you to try:
+
+1. Change the Alpha and Beta values
+2. Add and replace your own text
+3. Change the number of topics
+
+# (0) Obtaining the data
+
+We use a subset of the Parlspeech corpus [@parlspeech2020], spanning the 18th legislative period of the Bundestag.
+
+```{r}
+#| eval: false
+# note: I leave this here to show you how I processed the data
+# after download from dataverse. The original file is not in the course material.
+bundestag18 <- readRDS("data/Corp_Bundestag_V2.rds") %>% 
+  mutate(date = ymd(date),
+         speechnumber = as.integer(speechnumber)) %>% 
+  filter(date >= "2013-10-22",
+         date <= "2017-10-24")
+saveRDS(bundestag18, "data/bundestag18_speeches.rds")
+```
+
+```{r}
+if (!file.exists("data/bundestag18_speeches.rds")) {
+  curl::curl_download("https://www.dropbox.com/s/gn971s2ea3zbfgt/bundestag18_speeches.rds?dl=1", "data/bundestag18_speeches.rds", quiet = FALSE)
+}
+bundestag18 <- readRDS("data/bundestag18_speeches.rds") %>% 
+  mutate(doc_id = paste0(date, "-", speechnumber)) %>% 
+  as_tibble()
+```
+
+# (1) Creating a DFM {#creating-a-dtm}
+
+We first tidy the documents:
+
+```{r}
+library(tidytext)
+bundestag18_tidy <- bundestag18 %>% 
+  unnest_tokens(output = word, input = "text")
+```
+
+Secondly, we do some light cleaning:
+
+- removing stopwords
+- lemmatisation
+- removing rare terms
+- removing features that aren't words
+
+```{r}
+bundestag18_tidy_clean <- bundestag18_tidy %>% 
+  filter(!word %in% c(stopwords::stopwords(language = "de"), 
+                      "dass", "kollege", "kollegin", "herr", "frau", "dr")) %>% 
+  group_by(word) %>% 
+  filter(
+    n() > 10,                    # keep features that appears more than 10 times
+    !str_detect(word, "[^a-z]")  # keep features that consist only of characters
+  ) %>% 
+  ungroup()
+
+print(glue::glue(
+  "Cleaning removed {length(unique(bundestag18_tidy$word)) - length(unique(bundestag18_tidy_clean$word))} ",
+  "unique words and ",
+  "{length(unique(bundestag18_tidy$doc_id)) - length(unique(bundestag18_tidy_clean$doc_id))} documents. ",
+  "{length(unique(bundestag18_tidy$word))} unique words remain in ",
+  "{length(unique(bundestag18_tidy$doc_id))} documents"
+))
+```
+
+Now we can create a document-feature-matrix.
+This is a (sparse) matrix showing how often each term (column) occurs in each document (row):
+
+```{r}
+bundestag18_dfm <- bundestag18_tidy_clean %>%
+  count(doc_id, word) %>% 
+  cast_dfm(doc_id, word, n)
+```
+
+We can inspect a corner of the dtm by casting it to a regular (dense) matrix:
+
+```{r}
+as.matrix(bundestag18_dfm[1:5, 1:5])
+```
+
+# (2) Running the topic model {#running-the-topic-model}
+
+We can now fit the topic model from the dfm using the `textmodel_lda()` functin from the `seededlda` package.
+I like this package because of how simple and fast it is to use.
+In most tutorials use the `topicmodels` or `lda` package, which are also good.
+(stay away from `mallet`.)
+Note that we use `set.seed` to create reproducible results since topic modeling invlvoes random re-sampling (meaning each run will yield slighly different results).
+
+```{r}
+library(seededlda)
+set.seed(1)
+k <- 10
+lda_model <- textmodel_lda(
+  bundestag18_dfm,
+  k = k,                 # the number of topics is chosen at random for demonstration purposes
+  max_iter = 200,        # I would not usually recommend that few iterations, it's just so it runs quicker here
+  alpha = 50 / k,        # these are the default values in the package
+  beta = 0.1,
+  verbose = TRUE
+)
+```
+
+# (3) Inspecting and analysing the results {#inspecting-and-analysing-the-results}
+
+## Word-topic probabilities {#word-topic-probabilities}
+
+We first check the feature-topic-matrix (it's actually a topic-feature-matrix as rows and columns are swapped, but that doesn't really matter).
+The ftm in this model, however, has `r ncol(lda_model$phi)` columns (one for each input feature), which makes this impossible to go through.
+Rather, we look at the words with the highest values in each topic.
+The value in the ftm is referred to as $\phi$ (or phi) (other implementations of LDA confusingly name this $\beta$ (beta)).
+We extract and plot the highest phi values for all topics
+
+```{r, fig.width=8, fig.height=16}
+bundestag18_ftm <- lda_model$phi %>% 
+  as.data.frame() %>% # converting the matrix into a data.frame makes sure it plays nicely with the tidyverse
+  rownames_to_column("topic") %>% # the topic names/numbers are stored in the row.names, I move them to a column
+  mutate(topic = fct_inorder(topic)) %>% # turn to factor to maintain the correct order
+  pivot_longer(-topic, names_to = "word", values_to = "phi")
+
+topic_topwords_plot <- bundestag18_ftm %>% # turn to long for plotting
+  group_by(topic) %>% # using group_by and slice_max, we keep only the top 10 values from each topic
+  slice_max(order_by = phi, n = 15) %>% 
+  # using reorder_within does some magic for a nicer plot
+  mutate(word = tidytext::reorder_within(word, by = phi, within = topic)) %>% 
+  # from here on, we just make a bar plot with facets
+  ggplot(aes(x = phi, y = word, fill = topic)) +                               
+  geom_col() +
+  tidytext::scale_y_reordered() +
+  facet_wrap(~topic, ncol = 2, scales = "free_y")
+topic_topwords_plot
+```
+
+Going forward, I would now name these topics.
+I found this particular format in a Excel sheet helpful.
+
+```{r}
+lda_model$phi %>% 
+  as.data.frame() %>% 
+  rowid_to_column("topic") %>% 
+  pivot_longer(-topic, names_to = "word", values_to = "phi") %>% 
+  group_by(topic) %>% 
+  slice_max(order_by = phi, n = 20) %>% 
+  mutate(top = row_number()) %>% 
+  pivot_wider(id_cols = top, names_from = topic, values_from = word) %>% 
+  # Add an extra row where you can write in topic names
+  add_row(top = NA, .before = 1) %>%
+  rio::export("7._topicsmodel_topwords.xlsx")
+```
+
+
+## Topics per document {#topics-per-document}
+
+Similary to above, we can also extract to topics per document:
+
+```{r}
+bundestag18_dtm <- lda_model$theta %>% 
+  as.data.frame() %>% 
+  rownames_to_column("doc_id") %>% 
+  as_tibble()
+bundestag18_dtm
+```
+
+We can tidy this and join the results back with the original metadata using the `doc_id`:
+
+```{r}
+bundestag18_dtm_tidy <- bundestag18_dtm %>% 
+  pivot_longer(-doc_id, names_to = "topic", values_to = "theta") %>% 
+  # again this is to keep track of the order as it is otherwise order by alphabet
+  mutate(topic = fct_inorder(topic)) %>% 
+  left_join(bundestag18 %>% select(-text), by = "doc_id")
+bundestag18_dtm_tidy
+```
+
+Now, we can e.g. compare topic usage per party:
+
+```{r}
+bundestag18_dtm_tidy %>%  
+  filter(!is.na(party),
+         party != "independent") %>% 
+  group_by(party, topic) %>%  
+  summarize(theta = mean(theta)) %>%
+  ggplot(aes(x = theta, y = topic, fill = party)) + 
+  geom_col(position = "dodge")  +
+  scale_fill_manual(values = c(
+    "PDS/LINKE" = "#BD3075",
+    "SPD" = "#D71F1D",
+    "GRUENE" = "#78BC1B",
+    "CDU/CSU" = "#121212",
+    "FDP" = "#FFCC00",
+    "AfD" = "#4176C2"
+  ))
+```
+
+What sticks out is how often the AfD uses topic one.
+
+Or over time:
+
+```{r}
+bundestag18_dtm_tidy %>% 
+  group_by(date = floor_date(date, "months"), topic) %>%  
+  summarize(theta = mean(theta)) %>% 
+  ggplot(aes(x = date, y = theta, colour = topic)) +
+  geom_line()
+```
+
+```{r}
+bundestag18_dtm_tidy %>% 
+  group_by(date = floor_date(date, "months"), topic) %>%  
+  summarize(theta = mean(theta)) %>% 
+  ggplot(aes(x = date, y = theta, colour = topic)) +
+  geom_line() +
+  facet_wrap(vars(topic))
+```
+
+Again, topic 1 seems quite special with an explosion of prevalence in the second half of 2015.
+
+## Some alternative ways to explore the model
+
+### LDAvis
+
+A popular way of exploring topics and how they overlap is the `LDAvis` package.
+
+```{r eval=FALSE}
+#| eval: false
+library(LDAvis)
+json <- createJSON(phi = lda_model$phi,
+                   theta = lda_model$theta, 
+                   doc.length = quanteda::ntoken(lda_model$data),
+                   vocab = quanteda::featnames(lda_model$data), 
+                   term.frequency = quanteda::featfreq(lda_model$data))
+serVis(json)
+```
+
+LDAvis helps users understand the relationships between topics and the key terms that define them.
+
+The LDAvis visualization consists of two main components:
+
+1. Intertopic Distance Map: This is a two-dimensional plot displaying the distribution of topics. Each topic is represented by a circle, and its size indicates the relative prevalence of the topic in the corpus (important: the number inside the circle is not the topic number we used above! LDAvis assigns 1 to the larges topic, 2 is the second largest et.c). The distance between the circles represents the similarity or dissimilarity between topics. Topics that are closer together share more common terms, while topics further apart are more distinct.
+2. Top-Ranking Terms: This panel shows the most relevant terms for a selected topic. Relevance is determined by a combination of term frequency within the topic and the term's distinctiveness across topics. By examining the top-ranking terms, users can gain insights into the thematic content of each topic. If no topic is selected, it displays the overall salience of words.
+
+To interpret the LDAvis visualization, follow these steps:
+
+1. Examine the Intertopic Distance Map to understand the overall topic structure. Look for clusters of closely related topics or distinct groups of unrelated topics.
+Click on a topic circle to view the Top-Ranking Terms for that topic in the right panel. Assess the terms to infer the underlying theme or subject matter of the topic.
+Adjust the relevance metric (usually denoted by λ) to emphasize either term frequency within the topic or distinctiveness across topics, depending on your analysis goals.
+Repeat steps 2-3 for other topics to gain a comprehensive understanding of the thematic structure of your corpus.
+By leveraging LDAvis, users can efficiently interpret LDA-generated topics and gain valuable insights into the underlying structure and themes of large text corpora.
+
+### `tokenbrowser`
+
+We can check how the probabilities for documents are calculated by looking at the words and topic probabilities in their original context using the using the [tokenbrowser](https://github.com/kasperwelbers/tokenbrowser) package developed by Kasper Welbers
+
+We first select the 2000 tokens with the highest phi value, i.e., the ones which most clearly belong to one topic.
+
+```{r}
+categories <- bundestag18_ftm %>%
+  group_by(word) %>% 
+  mutate(phi_rel = phi / sum(phi)) %>% 
+  slice_max(order_by = phi, n = 1) %>% 
+  ungroup() %>% 
+  filter(phi_rel >= 0.5)
+```
+
+Then we attach the categories to the original tidy representation of the texts.
+
+```{r}
+assignments <- bundestag18_tidy %>% 
+  filter(doc_id %in% unique(bundestag18_tidy$doc_id)[1:5]) %>% 
+  left_join(categories, by = "word")
+```
+
+Now we can look at the words that clearly belong to a topic in context of the full speeches.
+
+```{r}
+#| eval: false
+library(tokenbrowser)
+categorical_browser(
+  assignments,
+  category = as.factor(assignments$topic), 
+  token_col = "word"
+) %>% 
+  browseURL()
+```
+
+# Finding an optimal number of topics
+
+The best way to find the optimal $k$ number of topics is to interpret different models and look for the ones that seems to divide your corpus into the most meaningful topics.
+However, this can be very cumbersome and there are some statistical methods to make the process easier.
+The idea behind all of them is to compare the metrics of different models to narrow your search down.
+
+```{r}
+lda_fun <- function(k, max_iter = 20) {
+  textmodel_lda(
+    bundestag18_dfm,
+    k = k,
+    max_iter = max_iter,
+    alpha = 50 / k,
+    beta = 0.1,
+    verbose = TRUE
+  )
+}
+
+models_df <- tibble(
+  k = c(10:20),
+  model = map(k, lda_fun)
+)
+```
+
+There is no official function in `seededlda` to evaluate different models.
+The `stm` package is much better here [as demonstrated by Julia Silge](https://juliasilge.com/blog/evaluating-stm/).
+But since I did not want to introduce another package, I copied the functions that are currently discussed from [this issue on GitHub](https://github.com/koheiw/seededlda/issues/26).
+
+```{r}
+semantic_coherence <- function(model, top_n = 10) {
+    h <- apply(terms(model, top_n), 2, function(y) {
+        d <- model$data[,y]
+        e <- Matrix::Matrix(docfreq(d), nrow = nfeat(d), ncol = nfeat(d))
+        f <- fcm(d, count = "boolean") + 1
+        g <- Matrix::band(log(f / e), 1, ncol(f))
+        sum(g)
+    })
+    sum(h)
+}
+
+divergence <- function(model) {
+    div <- proxyC::dist(model$phi, method = "kullback")
+    diag(div) <- NA
+    mean(as.matrix(div), na.rm = TRUE)
+}
+
+# this one is taken from stm https://github.com/bstewart/stm/blob/master/R/exclusivity.R
+exclusivity <- function(model, top_n = 10, frexw = 0.7) {
+  
+  tphi <- t(exp(model$phi))
+  s <- rowSums(tphi)
+  mat <- tphi / s # normed by columns of beta now.
+  
+  ex <- apply(mat, 2, rank) / nrow(mat)
+  fr <- apply(tphi, 2, rank) / nrow(mat)
+  frex <- 1 / (frexw / ex + (1 - frexw) / fr)
+  index <- apply(tphi, 2, order, decreasing = TRUE)[1:top_n, ]
+  
+  out <- vector(length = ncol(tphi))
+  for (i in seq_len(ncol(frex))) {
+    out[i] <- sum(frex[index[, i], i])
+  }
+  
+  return(mean(out))
+}
+```
+
+We can now use this plot to evaluate the different models.
+
+```{r}
+models_df_metrics <- models_df %>% 
+  mutate(semantic_coherence = map_dbl(model, semantic_coherence),
+         exclusivity = map_dbl(model, exclusivity),
+         divergence = map_dbl(model, divergence))
+
+models_df_metrics %>% 
+  select(-model) %>% 
+  pivot_longer(-k, names_to = "metric") %>% 
+  ggplot(aes(x = k, value, color = metric)) +
+  geom_line(linewidth = 1.5, alpha = 0.7, show.legend = FALSE) +
+  scale_x_continuous(breaks = scales::pretty_breaks()) +
+  facet_wrap(~metric, scales = "free_y") +
+  labs(x = "K (number of topics)",
+       y = NULL,
+       title = "Model diagnostics by number of topics",
+       subtitle = "Higher = Better")
+```
+
