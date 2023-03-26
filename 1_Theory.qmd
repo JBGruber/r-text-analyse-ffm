@@ -7,6 +7,7 @@ format:
   revealjs:
     smaller: true
     incremental: true
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
@@ -24,7 +25,12 @@ library(tidyverse)
 
 
 # custom function
-print_df <- function(x, max_r = 50L, max_c = 50) {
+print_df <- function(x, 
+                     max_r = 50L, 
+                     max_c = 50L,
+                     per_page = 5,
+                     y_height = "200px",
+                     hide_menu = TRUE) {
   if (is.dfm(x)) {
     x <- x %>%
       convert("data.frame")
@@ -32,9 +38,14 @@ print_df <- function(x, max_r = 50L, max_c = 50) {
   max_r <- ifelse(nrow(x) > max_r, max_r, nrow(x))
   max_c <- ifelse(ncol(x) > max_c, max_c, ncol(x))
   x <- x[0:max_r, 0:max_c]
+  opts <- list(scrollX = "200px", scrollY = y_height,
+               pageLength = per_page)
+  if (hide_menu) opts$dom <- "t"
   x %>% 
-    datatable(fillContainer = FALSE, rownames = FALSE, 
-              options = list(pageLength = 5, scrollX = "200px", dom = "t")) %>%
+    datatable(
+      fillContainer = FALSE, rownames = FALSE, 
+      options = opts
+    ) %>%
     formatStyle(columns = 1:20, fontSize = "60%")
 }
 ```
@@ -70,7 +81,7 @@ overview <- image_read_pdf("./data/2._An overview of text as data methods (Grimm
 image_resize(overview, geometry_size_percent(75))
 ```
 
-(Grimmer and Stewart 2013, p.2 )
+(@grimmerTextDataPromise2013, p.2)
 
 ## Classification of ACA approaches
 
@@ -79,6 +90,8 @@ library(magick)
 overview <- image_read_pdf("./data/2._classification of ACA approaches.pdf")
 image_resize(overview, geometry_size_percent(75))
 ```
+
+(@boumansTakingStockToolkit2016, p.10)
 
 ## Reducing Complexity: From Words to Numbers | The single most important concept in ACA
 
@@ -143,7 +156,12 @@ But: we already know the result is not entirely correct. Why?
 
 Bonus info: if you plot this over time, you have a really simple time-frequency analysis.
 
-## Analysis example 2 | Keyness
+## Analysis example 2 | Keyness {.nonincremental}
+
+::: {.nonincremental}
+- Group 1: `r text[1]`
+- Group 2: `r text[2]`
+:::
 
 ```{r}
 keyness_df <- dfm %>% 
@@ -179,17 +197,30 @@ print_df(data)
 ```{r echo=TRUE}
 library(quanteda)
 library(quanteda.textmodels)
-train <- c(TRUE, TRUE, FALSE)
+data <- data.frame(
+ text = c("The bandage was wound around the wound.",
+          "The farm was cultivated to produce produce.",
+          "The dump was so full that the workers had to refuse more refuse.",
+          "I need a bandage to cover my wound."),
+ class = c(1, 2, NA, NA)
+)
+
+dfm <- data %>% 
+  corpus() %>% 
+  tokens() %>% 
+  dfm()
+
+train <- c(TRUE, TRUE, FALSE, FALSE)
 training_dfm <- dfm_subset(dfm, subset = train)
 test_dfm <- dfm_subset(dfm, subset = !train)
 
 model <- textmodel_nb(training_dfm, data$class[1:2])
-predict(model, newdata = test_dfm)
+predict(model, newdata = test_dfm, type = "probability")
 ```
 
-- **The** bandage **was** wound around **the** wound.
-- **The** farm **was** cultivated **to** produce produce.
-- **The** dump **was** so full that **the** workers had **to** refuse more refuse.
+<!-- - **The** bandage **was** wound around **the** wound. -->
+<!-- - **The** farm **was** cultivated **to** produce produce. -->
+<!-- - **The** dump **was** so full that **the** workers had **to** refuse more refuse. -->
 
 ## Analysis example 4 | Automated Clustering
 
@@ -226,7 +257,7 @@ textmodel_wordfish(dfm) %>%
 - *"Feature engineering is the process of using domain knowledge to extract features from raw data via data mining techniques. These features can be used to improve the performance of machine learning algorithms."* [Wikipedia: Feature engineering](https://en.wikipedia.org/wiki/Feature_engineering)
 - The process of standardizing, removing or merging features can have substantial important implications for the results:
   - positive: can improve performance by selecting only what is important.
-  - negative: can lead to over-fitting or important features are removed by accident.
+  - negative: can lead to over-fitting or important features being removed by accident.
 
 ## Feature engineering | (AKA Preprocessing)
 
@@ -236,7 +267,7 @@ Most common steps:
   - Grouping word forms via *Stemming/Lemmatisation* (am, are, is $\Rightarrow$ be; car, cars, car's, cars' $\Rightarrow$ car).
   - Removing *Stopword* which are unlikely to convey much information (e.g., the, was, to).
   - Removing *Infrequent Terms* to reduce size of vocabulary and/or remove terms that do not contribute to analysis.
-  - Including *n-grams* to capture important/otherwise ambiguous multiword expressions (e.g., “national security”vs “national debt”). 
+  - Including *n-grams* to capture important/otherwise ambiguous multiword expressions (e.g., "national security" vs. "national debt"). 
   - *Compounding* is similar to *n-grams* but only a specific list of multiword expressions is used (e.g., "New York" $\Rightarrow$ "New_York")
 
 ## Feature engineering | (AKA Preprocessing)
@@ -245,7 +276,8 @@ Most common steps:
 library("quanteda")
 text <- c("The bandage was wound around the wound.",
           "The farm was cultivated to produce produce.",
-          "The dump was so full that the workers had to refuse more refuse.")
+          "The dump was so full that the workers had to refuse more refuse.",
+          "I need a bandage to cover my wound.")
 dfm_processed <- tokens(
   text,
   remove_numbers = TRUE, remove_punct = TRUE,
@@ -274,15 +306,14 @@ Repeating supervised classification with the preprocessed dfm:
 
 ```{r}
 #| echo: true
-train <- c(TRUE, TRUE, FALSE)
+train <- c(TRUE, TRUE, FALSE, FALSE)
 training_dfm <- dfm_subset(dfm_processed, subset = train)
 test_dfm <- dfm_subset(dfm_processed, subset = !train)
 
 model <- textmodel_nb(training_dfm, data$class[1:2])
-predict(model, newdata = test_dfm)
+predict(model, newdata = test_dfm, type = "probability")
 ```
 
-The result has changed from text3 being classified as 1 instead of 2.
 
 ## Feature engineering | (AKA Preprocessing)
 
@@ -296,7 +327,7 @@ convert(dfm_processed, "data.frame") %>%
   plot()
 ```
 
-The result is very similar except from the scale (i.e., distance between text) as texts seem to have become more similar.
+The result is very similar except from the scale (i.e., distance between text) as texts seem to have become less similar.
 
 ## Word Embedding
 
@@ -307,7 +338,7 @@ The result is very similar except from the scale (i.e., distance between text) a
 ## Word Embedding | GloVe Example
 
 ```{r}
-#| echo: true
+#| echo: false
 get_glove <- function(file, dimensions = c(50, 100, 200, 300)) {
   # don't re-download files if present
   if (!file.exists(file)) {
@@ -326,14 +357,13 @@ glove_df <- get_glove("data/glove.6B.100d.txt")
 ```
 
 ```{r}
-print_df(glove_df, max_c = 101L)
+print_df(glove_df, max_c = 101L, per_page = 7, y_height = "400px", hide_menu = FALSE)
 ```
 
 
 ## Word Embedding | GloVe Example
 
 ```{r}
-#| echo: true
 dfm_embed <- function(dfm, embedding_vectors) {
   terms <- embedding_vectors$term
   embedding_vectors$term <- NULL
@@ -350,16 +380,18 @@ dfm_glove <- dfm_embed(dfm, glove_df)
 ```
 
 ```{r}
-print_df(dfm_glove, max_c = 101L)
+print_df(dfm_glove, max_c = 101L, y_height = "300px")
 ```
 
 ## Word Embedding | GloVe Example
 
 ```{r}
+#| echo: true
 training_dfm <- dfm_subset(dfm_glove, subset = train)
 test_dfm <- dfm_subset(dfm_glove, subset = !train)
 model <- textmodel_svmlin(training_dfm, data$class[1:2])
-predict(model, newdata = test_dfm)
+predict(model, newdata = test_dfm, type = "class")
 ```
 
+# References
 
