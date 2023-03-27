@@ -293,7 +293,7 @@ potus %>%
 
 # Data from Kaggle
 
-[![](media/kaggle.png)(https://www.kaggle.com/datasets/konradb/iran-protests-2022-tweets?resource=download)
+[![](media/kaggle.png)](https://www.kaggle.com/datasets/konradb/iran-protests-2022-tweets?resource=download)
 
 ```{r}
 file_iran_tweets <- "data/iran_tweets.csv.zip"
@@ -335,7 +335,7 @@ head(gpt_submissions)
 
 ```{r}
 #| eval: false
-browseURL(paste0("https://www.reddit.com/r/", gpt_submissions$permalink[1]))
+browseURL(paste0("https://www.reddit.com/", gpt_submissions$permalink[1]))
 ```
 
 ```{r}
