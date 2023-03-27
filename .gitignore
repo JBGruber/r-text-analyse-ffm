@@ -3,7 +3,6 @@
 .RData
 .Ruserdata
 render-all.sh
-*.html
 1_Theory_files
 2_R_basics_files
 3_Obtaining_Text_Data_files

@@ -1,0 +1,1601 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.475">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Wouter van Atteveldt &amp; Johannes B. Gruber">
+<meta name="dcterms.date" content="2023-03-27">
+
+<title>Session 4: Dictionary Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="4_dictionary-analysis_files/libs/clipboard/clipboard.min.js"></script>
+<script src="4_dictionary-analysis_files/libs/quarto-html/quarto.js"></script>
+<script src="4_dictionary-analysis_files/libs/quarto-html/popper.min.js"></script>
+<script src="4_dictionary-analysis_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="4_dictionary-analysis_files/libs/quarto-html/anchor.min.js"></script>
+<link href="4_dictionary-analysis_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="4_dictionary-analysis_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="4_dictionary-analysis_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="4_dictionary-analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="4_dictionary-analysis_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
+<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#lexical-sentiment-analysis-with-tidytext" id="toc-lexical-sentiment-analysis-with-tidytext" class="nav-link" data-scroll-target="#lexical-sentiment-analysis-with-tidytext">Lexical Sentiment Analysis with <code>tidytext</code></a></li>
+  <li><a href="#inspecting-dictionary-hits" id="toc-inspecting-dictionary-hits" class="nav-link" data-scroll-target="#inspecting-dictionary-hits">Inspecting dictionary hits</a></li>
+  <li><a href="#most-common-words-per-category" id="toc-most-common-words-per-category" class="nav-link" data-scroll-target="#most-common-words-per-category">Most common words per category</a></li>
+  <li><a href="#smarter-wordclouds" id="toc-smarter-wordclouds" class="nav-link" data-scroll-target="#smarter-wordclouds">Smarter Wordclouds</a></li>
+  <li><a href="#more-complicated-dictionaries" id="toc-more-complicated-dictionaries" class="nav-link" data-scroll-target="#more-complicated-dictionaries">More complicated dictionaries</a></li>
+  </ul>
+</nav>
+</div>
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Session 4: Dictionary Analysis</h1>
+<p class="subtitle lead">Textanalyse in R: eine Einführung</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Wouter van Atteveldt &amp; Johannes B. Gruber </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">March 27, 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>Dictionaries are a very transparent and useful tool for automatic content analysis. At its simplest, a dictionary is a list of terms, of lexicons, with a specific meaning attached to each term. For example, a sentiment lexicon can contain a list of positive and negative words. The computer then counts the total number of negative and positive words per document, giving an indication of the sentiment of the document.</p>
+<p>This can be expanded by also using wildcards, boolean, phrase and proximity conditions: wildcards such as <code>immig*</code> would match all words starting with or containing a certain term; boolean conditions allow you to specify that specific combinations of words must occur; while phrase and proximity conditions specify that words need to occur next to or near each other.</p>
+<p>Whatever type of dictionary is used, it is vital that the dictionary is validated in the context of its use: does the occurrence of the specified terms indeed imply that the desired theoretical concept is present? The most common approach to validation is <em>gold standard</em> validation: human expert coding is used to code a subset of documents, and the computer output is validated against the (presumed) correct coding.</p>
+</section>
+<section id="lexical-sentiment-analysis-with-tidytext" class="level1">
+<h1>Lexical Sentiment Analysis with <code>tidytext</code></h1>
+<p>The easiest setup for dictionary analysis is finding exact matches with an existing word list or lexicon. For example, there are various sentiment lexicons that assign a positive or negative label to words.</p>
+<p>For example, the <a href="https://cran.r-project.org/web/packages/textdata/textdata.pdf">textdata</a> package contains a number of lexica, including the NRC emotion lexicon:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(textdata)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>nrc <span class="ot">&lt;-</span> <span class="fu">lexicon_nrc</span>()</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(nrc)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 2
+  word      sentiment
+  &lt;chr&gt;     &lt;chr&gt;    
+1 abacus    trust    
+2 abandon   fear     
+3 abandon   negative 
+4 abandon   sadness  
+5 abandoned anger    
+6 abandoned fear     </code></pre>
+</div>
+</div>
+<p>Using the various <code>join</code> functions, it is easy to match this lexicon to a token list. For example, let’s see which emotional terms occur in the state of the union speeches:</p>
+<p>Note: For more information on basic tidytext usage, see <a href="https://github.com/ccs-amsterdam/r-course-material/blob/master/tutorials/tidytext.md">our tidytext tutorial</a> and/or the <a href="https://www.tidytextmining.com/">official tidytext book</a>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sotu)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidytext)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>sotu_tidy <span class="ot">&lt;-</span> sotu_meta  <span class="sc">|&gt;</span> </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_cols</span>(<span class="at">text =</span> sotu_text) <span class="sc">|&gt;</span>  </span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">doc_id =</span> X) <span class="sc">|&gt;</span> </span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(word, text)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sotu_tidy)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  doc_id         president year years_active       party sotu_type     word
+1      1 George Washington 1790    1789-1793 Nonpartisan    speech   fellow
+2      1 George Washington 1790    1789-1793 Nonpartisan    speech citizens
+3      1 George Washington 1790    1789-1793 Nonpartisan    speech       of
+4      1 George Washington 1790    1789-1793 Nonpartisan    speech      the
+5      1 George Washington 1790    1789-1793 Nonpartisan    speech   senate
+6      1 George Washington 1790    1789-1793 Nonpartisan    speech      and</code></pre>
+</div>
+</div>
+<p>Since both the <code>nrc</code> and <code>sotu_tidy</code> data frames contain the word column, we can directly join them and e.g.&nbsp;compute the total emotion per year:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>sotu_emotions <span class="ot">&lt;-</span> <span class="fu">left_join</span>(sotu_tidy, nrc, <span class="at">by =</span> <span class="st">"word"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in left_join(sotu_tidy, nrc, by = "word"): Detected an unexpected many-to-many relationship between `x` and `y`.
+ℹ Row 1 of `x` matches multiple rows in `y`.
+ℹ Row 5485 of `y` matches multiple rows in `x`.
+ℹ If a many-to-many relationship is expected, set `relationship =
+  "many-to-many"` to silence this warning.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>sotu_emotions_count <span class="ot">&lt;-</span> sotu_emotions<span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(year, sentiment) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">p =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n)) <span class="sc">|&gt;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(sentiment))</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sotu_emotions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  doc_id         president year years_active       party sotu_type     word
+1      1 George Washington 1790    1789-1793 Nonpartisan    speech   fellow
+2      1 George Washington 1790    1789-1793 Nonpartisan    speech   fellow
+3      1 George Washington 1790    1789-1793 Nonpartisan    speech citizens
+4      1 George Washington 1790    1789-1793 Nonpartisan    speech       of
+5      1 George Washington 1790    1789-1793 Nonpartisan    speech      the
+6      1 George Washington 1790    1789-1793 Nonpartisan    speech   senate
+  sentiment
+1  positive
+2     trust
+3      &lt;NA&gt;
+4      &lt;NA&gt;
+5      &lt;NA&gt;
+6     trust</code></pre>
+</div>
+</div>
+<p>Note the use of <code>left_join</code> to preserve unmatched tokens, which we can then use to compute the percentage of words <code>p</code> that matched the lexicon.</p>
+<p>So, how did emotions change over time?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggridges)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sotu_emotions_count) <span class="sc">+</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ridgeline</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> sentiment, <span class="at">height =</span> p <span class="sc">/</span> <span class="fu">max</span>(p), <span class="at">fill =</span> sentiment)) <span class="sc">+</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_ridges</span>() <span class="sc">+</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">fill =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="4_dictionary-analysis_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="inspecting-dictionary-hits" class="level1">
+<h1>Inspecting dictionary hits</h1>
+<p>Using the <code>tokenbrowser</code> package developed by Kasper Welbers, we can inspect the hits in their original context.</p>
+<p>(Note that due to an unfortunate bug, this package requires the document id column is called <code>doc_id</code>)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tokenbrowser)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>hits <span class="ot">&lt;-</span> <span class="fu">left_join</span>(sotu_tidy, nrc)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>meta <span class="ot">&lt;-</span> <span class="fu">select</span>(sotu_tidy, doc_id, year, president, party)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">categorical_browser</span>(hits, <span class="at">meta =</span> meta, <span class="at">category =</span> hits<span class="sc">$</span>sentiment, <span class="at">token_col =</span> <span class="st">"word"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">browseURL</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Note also that some words are repeated since the join will duplicate the rows if a word matched multiple categories.</p>
+</section>
+<section id="most-common-words-per-category" class="level1">
+<h1>Most common words per category</h1>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>sotu_emotions <span class="sc">|&gt;</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word, sentiment) <span class="sc">|&gt;</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(sentiment) <span class="sc">|&gt;</span> </span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(n, <span class="at">n =</span> <span class="dv">6</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(sentiment)) <span class="sc">|&gt;</span> </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder_within</span>(word, n, sentiment)) <span class="sc">%&gt;%</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> n, <span class="at">y =</span> word, <span class="at">fill =</span> sentiment)) <span class="sc">+</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> sentiment, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Contribution to sentiment"</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_reordered</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="4_dictionary-analysis_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="smarter-wordclouds" class="level1">
+<h1>Smarter Wordclouds</h1>
+<p>One easy visualation for text that you will often see is a word cloud:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(wordcloud)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>sotu_emotions <span class="sc">|&gt;</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word) <span class="sc">|&gt;</span> </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">with</span>(<span class="fu">wordcloud</span>(word, n, <span class="at">max.words =</span> <span class="dv">200</span>, <span class="at">colors =</span> <span class="fu">brewer.pal</span>(<span class="dv">9</span>, <span class="st">"Pastel1"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="4_dictionary-analysis_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>While common, however, it is not really the best way to visualise anything:</p>
+<ul>
+<li>the location of words on the x and y axis is random, which might look nice, but wastes potential to map more aesthetics</li>
+<li>the colour and size of words communicate the same thing: prevalence</li>
+<li>mapping size to prevalence makes the plot hard to interpret beyond the largest words</li>
+</ul>
+<p>In the end, this table tells you more about the data than the visualisation:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>sotu_emotions <span class="sc">|&gt;</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word, sentiment, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">200</span>)<span class="sc">|&gt;</span> </span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">gt</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">data_color</span>(</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">columns =</span> sentiment,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">colors =</span> scales<span class="sc">::</span><span class="fu">col_factor</span>(</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">palette =</span> <span class="st">"viridis"</span>, </span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">domain =</span> <span class="fu">unique</span>(nrc<span class="sc">$</span>sentiment)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">container.overflow.y =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">container.height =</span> <span class="st">"400px"</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+
+<div id="oplxjitono" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:400px;">
+<style>html {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
+}
+
+:where(#oplxjitono) .gt_table {
+  display: table;
+  border-collapse: collapse;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+:where(#oplxjitono) .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+:where(#oplxjitono) .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 0;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+:where(#oplxjitono) .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+:where(#oplxjitono) .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+:where(#oplxjitono) .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+:where(#oplxjitono) .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+:where(#oplxjitono) .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+:where(#oplxjitono) .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+:where(#oplxjitono) .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+:where(#oplxjitono) .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+:where(#oplxjitono) .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+:where(#oplxjitono) .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+:where(#oplxjitono) .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+:where(#oplxjitono) .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+:where(#oplxjitono) .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+:where(#oplxjitono) .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+:where(#oplxjitono) .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+:where(#oplxjitono) .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+:where(#oplxjitono) .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+:where(#oplxjitono) .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-left: 4px;
+  padding-right: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+:where(#oplxjitono) .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+:where(#oplxjitono) .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+:where(#oplxjitono) .gt_left {
+  text-align: left;
+}
+
+:where(#oplxjitono) .gt_center {
+  text-align: center;
+}
+
+:where(#oplxjitono) .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+:where(#oplxjitono) .gt_font_normal {
+  font-weight: normal;
+}
+
+:where(#oplxjitono) .gt_font_bold {
+  font-weight: bold;
+}
+
+:where(#oplxjitono) .gt_font_italic {
+  font-style: italic;
+}
+
+:where(#oplxjitono) .gt_super {
+  font-size: 65%;
+}
+
+:where(#oplxjitono) .gt_footnote_marks {
+  font-style: italic;
+  font-weight: normal;
+  font-size: 75%;
+  vertical-align: 0.4em;
+}
+
+:where(#oplxjitono) .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+:where(#oplxjitono) .gt_indent_1 {
+  text-indent: 5px;
+}
+
+:where(#oplxjitono) .gt_indent_2 {
+  text-indent: 10px;
+}
+
+:where(#oplxjitono) .gt_indent_3 {
+  text-indent: 15px;
+}
+
+:where(#oplxjitono) .gt_indent_4 {
+  text-indent: 20px;
+}
+
+:where(#oplxjitono) .gt_indent_5 {
+  text-indent: 25px;
+}
+</style>
+<table class="gt_table">
+  
+  <thead class="gt_col_headings">
+    <tr>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="word">word</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="sentiment">sentiment</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_right" rowspan="1" colspan="1" scope="col" id="n">n</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="word" class="gt_row gt_left">the</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">165603</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">of</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">106402</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">and</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">68063</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">to</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">68039</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">in</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">43429</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">a</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">31342</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">that</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">24113</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">for</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">21701</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">be</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">20450</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">our</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">19599</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">is</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">18776</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">by</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">16347</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">it</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">16283</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">we</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">13937</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">this</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">13696</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">which</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">13546</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">have</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">13474</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">as</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">13405</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">with</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">13377</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">will</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">11213</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">i</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">10884</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">on</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">10541</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">are</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">10041</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">has</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">10003</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">not</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">9606</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">been</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">9597</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">their</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">8379</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">from</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">8158</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">government</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #31688E; color: #FFFFFF;">fear</td>
+<td headers="n" class="gt_row gt_right">7597</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">government</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #1F9E89; color: #FFFFFF;">negative</td>
+<td headers="n" class="gt_row gt_right">7597</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">at</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">7594</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">all</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">7364</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">states</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">6926</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">an</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">6811</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">or</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">6425</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">its</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">6222</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">but</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">6176</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">was</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">6115</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">congress</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #3E4A89; color: #FFFFFF;">disgust</td>
+<td headers="n" class="gt_row gt_right">5808</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">congress</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">5808</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">should</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">5512</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">they</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">5319</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">united</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">5156</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">united</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">5156</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">more</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">5076</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">these</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4927</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">can</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4839</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">year</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4739</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">such</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4364</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">people</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4298</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">upon</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4228</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">would</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4226</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">so</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4109</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">other</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">4063</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">them</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3922</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">no</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3840</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">than</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3652</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">country</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3641</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">must</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3600</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">new</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3578</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">now</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3577</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">may</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3572</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">those</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3508</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">any</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3507</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">made</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3482</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">great</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3476</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">public</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">3419</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">public</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">3419</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">who</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3357</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">there</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3354</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">were</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3341</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">under</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3328</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">time</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">3188</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">one</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3185</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">if</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3105</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">last</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">3040</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">american</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2988</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">war</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #31688E; color: #FFFFFF;">fear</td>
+<td headers="n" class="gt_row gt_right">2976</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">war</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #1F9E89; color: #FFFFFF;">negative</td>
+<td headers="n" class="gt_row gt_right">2976</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">my</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2889</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">us</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2701</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">years</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2696</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">world</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2633</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">only</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2573</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">most</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2535</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">his</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2521</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">you</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2473</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">national</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2472</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">had</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2420</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">every</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2383</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">into</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2366</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">state</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2351</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">law</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">2325</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">some</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2304</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">present</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">2245</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">present</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #26828E; color: #FFFFFF;">joy</td>
+<td headers="n" class="gt_row gt_right">2245</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">present</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">2245</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">present</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #B4DE2C; color: #000000;">surprise</td>
+<td headers="n" class="gt_row gt_right">2245</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">present</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">2245</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">also</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2234</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">do</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2173</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">when</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2164</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">between</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2163</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">work</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2162</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">act</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2133</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">power</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2092</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">make</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2087</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">shall</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2042</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">peace</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">2030</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">peace</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #26828E; color: #FFFFFF;">joy</td>
+<td headers="n" class="gt_row gt_right">2030</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">peace</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">2030</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">peace</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">2030</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">during</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">2020</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">general</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">2009</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">general</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">2009</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">many</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1995</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">nation</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">1983</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">own</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1969</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">nations</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1962</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">system</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">1958</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">citizens</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1950</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">federal</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1948</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">service</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1927</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">without</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1880</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">against</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1823</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">over</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1822</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">well</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1822</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">part</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1781</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">first</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1762</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">foreign</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #1F9E89; color: #FFFFFF;">negative</td>
+<td headers="n" class="gt_row gt_right">1710</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">two</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1700</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">legislation</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1675</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">necessary</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1663</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">america</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1624</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">department</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1609</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">what</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1601</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">policy</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">1567</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">same</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1563</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">out</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1552</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">much</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1548</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">good</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">1539</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">good</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #26828E; color: #FFFFFF;">joy</td>
+<td headers="n" class="gt_row gt_right">1539</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">good</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">1539</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">good</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #B4DE2C; color: #000000;">surprise</td>
+<td headers="n" class="gt_row gt_right">1539</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">good</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">1539</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">subject</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #1F9E89; color: #FFFFFF;">negative</td>
+<td headers="n" class="gt_row gt_right">1533</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">before</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1522</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">interest</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">1511</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">through</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1496</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">increase</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">1474</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">he</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1454</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">while</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1454</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">laws</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1452</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">both</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1439</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">important</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">1433</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">important</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">1433</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">very</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1391</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">business</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1361</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">your</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1346</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">men</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1342</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">being</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1340</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">free</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1325</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">within</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1321</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">trade</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">1320</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">just</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1319</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">long</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">1316</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">treaty</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1304</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">administration</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1301</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">need</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1251</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">right</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1251</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">about</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1250</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">action</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">1250</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">could</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1248</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">rights</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1242</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">economic</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1238</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">attention</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">1228</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">interests</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1224</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">military</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #31688E; color: #FFFFFF;">fear</td>
+<td headers="n" class="gt_row gt_right">1222</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">duty</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1221</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">large</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1219</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">security</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1215</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">report</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1210</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">treasury</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1202</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">up</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1197</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">far</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1181</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">progress</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">1168</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">progress</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #26828E; color: #FFFFFF;">joy</td>
+<td headers="n" class="gt_row gt_right">1168</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">progress</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #35B779; color: #FFFFFF;">positive</td>
+<td headers="n" class="gt_row gt_right">1168</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">union</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1167</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">each</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1165</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">where</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1165</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">secretary</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1163</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">future</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1159</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">means</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1157</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">still</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1156</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">because</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1155</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">commerce</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #FDE725; color: #000000;">trust</td>
+<td headers="n" class="gt_row gt_right">1151</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">program</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1143</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">countries</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #808080; color: #FFFFFF;">NA</td>
+<td headers="n" class="gt_row gt_right">1133</td></tr>
+    <tr><td headers="word" class="gt_row gt_left">continue</td>
+<td headers="sentiment" class="gt_row gt_left" style="background-color: #482878; color: #FFFFFF;">anticipation</td>
+<td headers="n" class="gt_row gt_right">1114</td></tr>
+  </tbody>
+  
+  
+</table>
+</div>
+</div>
+</div>
+<p>And if you wanted a plot, you could communicate more details with a simple bar plot.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>sotu_emotions <span class="sc">|&gt;</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(sentiment)) <span class="sc">|&gt;</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(word, sentiment, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">word =</span> <span class="fu">reorder</span>(word, n)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> n, <span class="at">y =</span> word, <span class="at">fill =</span> sentiment)) <span class="sc">+</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="4_dictionary-analysis_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Now to a smarter version of the word cloud that actually maps several variables to aesthetics. I calculate the keyness of words using the weighted log odds. High values mean words are more common in a dataset than in a comparison set.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidylo)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>sotu_emotions_keyness <span class="ot">&lt;-</span> sotu_emotions <span class="sc">|&gt;</span> </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(year <span class="sc">&gt;</span> <span class="dv">1989</span>) <span class="sc">|&gt;</span> <span class="co"># narrow to Clinton and after</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(party, word, sentiment) <span class="sc">|&gt;</span> </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_log_odds</span>(party, word, n)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(sotu_emotions_keyness)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       party  word sentiment  n log_odds_weighted
+1 Democratic     1      &lt;NA&gt; 31         0.3890256
+2 Democratic 1,000      &lt;NA&gt; 16         0.7415613
+3 Democratic 1,100      &lt;NA&gt;  2         0.1060507
+4 Democratic 1,200      &lt;NA&gt;  2         0.9149148
+5 Democratic 1,500      &lt;NA&gt;  3        -0.1131904
+6 Democratic 1,700      &lt;NA&gt;  1         0.6469404</code></pre>
+</div>
+</div>
+<p>Now we have several variables that we can map to aesthetics using a <code>ggplot2</code> addon called <code>ggwordcloud</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"ggwordcloud"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>sotu_emotions_keyness <span class="sc">%&gt;%</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(sentiment)) <span class="sc">|&gt;</span> </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(log_odds_weighted, <span class="at">n =</span> <span class="dv">200</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># reverse the scale for Democrats to show their log odds as negative values</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">overrepresentation =</span> <span class="fu">ifelse</span>(party <span class="sc">==</span> <span class="st">"Democratic"</span>, </span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>                                     log_odds_weighted <span class="sc">*</span> <span class="sc">-</span><span class="dv">1</span>, </span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>                                     log_odds_weighted)) <span class="sc">|&gt;</span> </span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> overrepresentation,</span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> word, <span class="at">size =</span> n, <span class="at">colour =</span> sentiment</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_wordcloud</span>(<span class="at">show.legend =</span> <span class="cn">TRUE</span>)  <span class="sc">+</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> <span class="cf">function</span>(x) <span class="fu">abs</span>(x)) <span class="sc">+</span></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_area</span>(<span class="at">max_size =</span> <span class="dv">7</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Democratic (left) vs Republican (right) overrepresentation of words in SOTU since 1993"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="4_dictionary-analysis_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Here:</p>
+<ul>
+<li>the x axis shows over-representation for words in either Democratic or Republican speeches</li>
+<li>(the y axis is left random, but could be used to show another variable)</li>
+<li>the colour shows the sentiment of a word</li>
+<li>the size still shows the prevalence</li>
+</ul>
+</section>
+<section id="more-complicated-dictionaries" class="level1">
+<h1>More complicated dictionaries</h1>
+<p>For more complicated dictionaries, you can use the boolydict package. At the time of writing, this package needs to be installed from github rather than from CRAN:</p>
+<p>(Note: This might need rtools to build, hopefully it will work on non-linux computers!)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>remotes<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">'kasperwelbers/boolydict'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, we can create a dictionary containing e.g.&nbsp;boolean and wildcard terms. For example, we can create a (very naive) dictionary for Islamic terrorism and immigration from Islamic countries:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(boolydict)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>dictionary <span class="ot">=</span> <span class="fu">tribble</span>(</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="sc">~</span>label, <span class="sc">~</span>string,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">'islam_terror'</span>, <span class="st">'(musl* OR islam*) AND terror*'</span>,</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">'islam_immig'</span>, <span class="st">'(musl* OR islam*) AND immig*'</span>,</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, we can use the <code>dict_add</code> function to add a column for each dictionary label, using <code>by_label</code> to create separate columns, and settings <code>fill=0</code> for words that did not match:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>hits <span class="ot">&lt;-</span> sotu_tidy <span class="sc">|&gt;</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dict_add</span>(dictionary, <span class="at">text_col =</span> <span class="st">"word"</span>, <span class="at">context_col =</span> <span class="st">"doc_id"</span>, <span class="at">by_label =</span> <span class="st">"label"</span>, <span class="at">fill =</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_tibble</span>()</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>hits <span class="sc">|&gt;</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="sc">-</span>islam_immig) <span class="sc">|&gt;</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 9
+  doc_id president       year years_active party     sotu_type word  islam_immig
+   &lt;int&gt; &lt;chr&gt;          &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;       &lt;dbl&gt;
+1    199 Jimmy Carter    1980 1977-1981    Democrat… written   immi…           1
+2    199 Jimmy Carter    1980 1977-1981    Democrat… written   isla…           1
+3    201 Jimmy Carter    1981 1977-1981    Democrat… written   immi…           1
+4    201 Jimmy Carter    1981 1977-1981    Democrat… written   isla…           1
+5    226 George W. Bush  2006 2005-2009    Republic… speech    islam           1
+6    226 George W. Bush  2006 2005-2009    Republic… speech    islam           1
+# ℹ 1 more variable: islam_terror &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>So, how did mentions of Islam-related terrorism and immigration change over time?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>hits <span class="sc">|&gt;</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(year, islam_immig, islam_terror) <span class="sc">|&gt;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>year) <span class="sc">|&gt;</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(year, name) <span class="sc">|&gt;</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">value =</span> <span class="fu">sum</span>(value)) <span class="sc">|&gt;</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> value, <span class="at">color =</span> name), <span class="at">alpha =</span> .<span class="dv">6</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="4_dictionary-analysis_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Unsurprisingly, both concepts only really became salient after 2000.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
