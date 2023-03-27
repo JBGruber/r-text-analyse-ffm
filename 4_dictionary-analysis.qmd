@@ -280,3 +280,15 @@ iran_tweets <- rio::import(file_iran_tweets)
 ```
 
 
+# Exercise {#exercise}
+
+Try to use the NRC emotion lexicon on the #IranProtests202 data:
+
+```{r}
+file_iran_tweets <- "data/iran_tweets.csv.zip"
+if (!file.exists(file_iran_tweets)) {
+  curl::curl_download("https://www.dropbox.com/s/kymkteu6vpf85ef/iran_tweets.csv.zip?dl=1", file_iran_tweets)
+}
+iran_tweets <- rio::import(file_iran_tweets)
+```
+
