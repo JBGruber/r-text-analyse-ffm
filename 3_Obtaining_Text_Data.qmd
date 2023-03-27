@@ -137,20 +137,20 @@ library(rvest)
 lego_movie <- read_html("http://www.imdb.com/title/tt1490017/")
 
 rating <- lego_movie %>% 
-  html_nodes("strong span") %>%
+  html_node(".squoh") %>%
   html_text() %>%
   as.numeric()
 rating
 
 cast <- lego_movie %>%
-  html_nodes("#titleCast .primary_photo img") %>%
-  html_attr("alt")
+  html_nodes(".fUguci") %>%
+  html_text()
 cast
 
 poster <- lego_movie %>%
-  html_nodes(".poster img") %>%
-  html_attr("src")
-poster
+  html_nodes("[property=\"og:image\"]") %>%
+  html_attr("content")
+magick::image_read(poster)
 ```
 
 ## Scraping news from Breitbart:
@@ -195,6 +195,7 @@ bb <- tibble(
   headline = headline,
   article = article
 )
+bb
 ```
 
 A great way to get started with scraping is by learning more about CSS selectors with the game [CSS Diner](https://flukeout.github.io/).
@@ -349,3 +350,8 @@ gpt_submissions %>%
   ggplot(aes(x = month, y = n, fill = type)) +
   geom_col(position = "dodge")
 ```
+
+# exercise
+
+For the next 10 minutes: find data that interests you and load it into R.
+
