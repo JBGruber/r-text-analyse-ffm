@@ -28,7 +28,6 @@ In this session we will first do the analysis using the `tidytext` as there is a
 library(tidytext)
 library(widyr)
 library(tidyverse); theme_set(theme_minimal())
-library(quanteda)
 ```
 
 As data source for this session we use Twitter dataset on the Iranian protests from Kaggle (we used this in session 3, so please go back and download it if you haven't done so yet):
@@ -110,6 +109,19 @@ iran_tweets_tidy %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
 
+### Exercise Tasks
+
+1. Create a bar chart that shows the overall frequency of the top 10 words over time in the Iran tweets data.
+
+2. Look for the top 10 words in the potus data frame
+
+```{r}
+potus <- readRDS("./data/potus_tweets.RDS")
+```
+
+3. Create a new data frame that contains top 10 bigrams (pairs of two consecutive words) in the iran_tweets_tidy data frame over time.
+
+
 ## Perform correlation
 
 Before we start with that data, let's look at some theory behind correlation first.
@@ -147,9 +159,8 @@ example_tweets_df <- iran_tweets_tidy %>%
 
 example_tweets_dfm <- example_tweets_df %>% 
   count(word, status_id) %>% 
-  cast_dfm(status_id, word, n) %>% 
-  dfm_keep(c("us", "join", "solidarity", "protests", "special")) %>%
-  quanteda::convert("data.frame")
+  filter(word %in% c("us", "join", "solidarity", "protests", "special")) %>% 
+  pivot_wider(id_cols = status_id, names_from = word, values_from = n, values_fill = 0)
 
 example_tweets_dfm
 ```
@@ -166,7 +177,7 @@ Instead of turning the tidy data into a matrix first, we can also use `pairwise_
 example_tweets_df %>%  
   pairwise_cor(word, status_id, sort = TRUE) %>% # find the correlation between words 
   filter(item1 %in% "protests",
-         item2 %in% "special") # filter out rows where there is no correlation
+         item2 %in% "special") # look at the words we used above
 ```
 
 
@@ -181,6 +192,10 @@ correlations <- iran_tweets_tidy %>%
   filter(!is.na(correlation)) # filter out rows where there is no correlation
 correlations
 ```
+
+### Exercise Tasks
+
+1. Show the correlations between the top words in the potus data frame
 
 ## Plot the network of our most important words
 
@@ -226,6 +241,12 @@ Note that `ggsave` saves the last plot you did by default. Find out more about t
 Why does this matter? 
 Sometimes the bag-of-words strategy does not work well as two words essentially for one term. Correlations are a good way to find so-called n-grams, meaning bigrams (e.g., "human_right") trigrams (e.g., "The United States") that you should concatenate before preprocessing (e.g., with `unnest_tokens`).
 Besides that, it makes the point that text data can be explored by turning it into numbers :)
+
+### Exercise Tasks
+
+1. `ggraph()` has a layout option. See if you can find a layout that is more informative for the last plot.
+
+2. Using the `unnest_tokens` function, create a new dataset with the bigrams and trigrams found in the dataset. Compare the results to the original dataset and discuss the differences.
 
 # Regression
 
@@ -356,3 +377,17 @@ test_data_predict %>%
 We can see that the fit is not great, with some negative day values and quite a bit of mis-prediction.
 But we can still see a trend and that the model is actually predicted something and does not return random results.
 Given that language does not shift that dramatically over time, this is still quite interesting.
+
+### Exercise Tasks
+
+1. In the State of the Union Addresses, turn the year into a continuous variable starting with 1
+
+```{r}
+library(sotu)
+sotu <- sotu_meta %>%  
+  bind_cols(text = sotu_text) 
+```
+
+2. Get the top 500 words from the sotu data
+
+3. Run a OLS with the year as dependent variable
