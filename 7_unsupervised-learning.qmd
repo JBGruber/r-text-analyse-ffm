@@ -220,7 +220,6 @@ lda_model$phi %>%
   rio::export("7._topicsmodel_topwords.xlsx")
 ```
 
-
 ## Topics per document {#topics-per-document}
 
 Similary to above, we can also extract to topics per document:
@@ -264,7 +263,7 @@ bundestag18_dtm_tidy %>%
   ))
 ```
 
-What sticks out is how often the AfD uses topic one.
+What sticks out is how often the AfD uses topic nine.
 
 Or over time:
 
@@ -442,4 +441,3 @@ models_df_metrics %>%
        title = "Model diagnostics by number of topics",
        subtitle = "Higher = Better")
 ```
-

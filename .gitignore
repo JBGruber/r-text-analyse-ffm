@@ -11,3 +11,14 @@ render-all.sh
 6_supervised-learning_files
 7_unsupervised-learning_files
 7._topicsmodel_topwords.xlsx
+8_Word_Embeddings_and_Deep_Learning_files
+.Renviron
+model
+python-env
+media/fig_overtime.html
+media/bert_corp_news_intertopic.html
+README.html
+8_imdb_distilbert.rds
+8_imdb_roberta.rds
+8_topic_model.rds
+5_network_plot.pdf

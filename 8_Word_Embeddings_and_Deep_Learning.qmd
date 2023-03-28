@@ -60,8 +60,9 @@ model <- grafzahl(x = imdb_train$text,
                   y = imdb_train$label,
                   model_name = "distilbert-base-uncased",
                   output_dir = "model",
-                  cuda = FALSE,
-                  num_train_epochs = 1)
+                  cuda = TRUE,
+                  num_train_epochs = 1,
+                  train_size = 1)
 saveRDS(model, "8_imdb_distilbert.rds")
 # model <- readRDS("8_imdb_distilbert.rds")
 ```
@@ -314,6 +315,7 @@ top_words <- map_df(names(topic_model$topic_representations_), function(t) {
 We can plot them in the same way as in the last session:
 
 ```{r}
+library(tidytext)
 top_words %>%
   filter(topic %in% c(1, 7, 44, 53, 65, 66)) %>% # select a couple of topics
   left_join(topic_labels, by = "topic") %>%
@@ -331,11 +333,11 @@ We can use a nice little visualization built into BERTopic to show how topics ar
 # map intertopic distance
 intertopic_distance = topic_model.visualize_topics(width=700, height=700)
 # save fig
-intertopic_distance.write_html("python-in-r_files/figure-html/bert_corp_news_intertopic.html")
+intertopic_distance.write_html("media/bert_corp_news_intertopic.html")
 ```
 
 ```{r}
-htmltools::includeHTML("python-in-r_files/figure-html/bert_corp_news_intertopic.html")
+htmltools::includeHTML("media/bert_corp_news_intertopic.html")
 ```
 
 BERTopic also classifies documents into the topic categories (again not really how you should use LDA topicmodels). And provides a nice visualisation for trends over time. Unfortunately, the date format in R does not translate automagically to Python, hence we need to convert the dates to strings:
@@ -355,10 +357,10 @@ topics_over_time = topic_model.topics_over_time(docs=r.corp_news_t.texts,
 fig_overtime = topic_model.visualize_topics_over_time(topics_over_time,
                                                       topics=[1, 7, 44, 53, 65, 66])
 #save figure
-fig_overtime.write_html("python-in-r_files/figure-html/fig_overtime.html")
+fig_overtime.write_html("media/fig_overtime.html")
 ```
 
 ```{r}
-htmltools::includeHTML("python-in-r_files/figure-html/fig_overtime.html")
+htmltools::includeHTML("media/fig_overtime.html")
 ```
 

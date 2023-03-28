@@ -140,8 +140,8 @@ text_tbl
 
 Here, ${n_{11}}$ represents the number of documents where word X *and* word Y appear
 ${n_{00}}$ represents the number where neither appears.
-${n_{10}}$ and ${n_{01}}$ represent cases where one of the words appear, but not the other. 
-The phi-coefficient then is represented by this formula:  
+${n_{10}}$ and ${n_{01}}$ represent cases where one of the words appear, but not the other.
+The phi-coefficient then is represented by this formula:
 
 $\phi = \frac{n_{11} n_{10} - n_{10} n_{01}}{\sqrt{n_1. n_0. n_.0 n_.1}}$
 
@@ -180,7 +180,6 @@ example_tweets_df %>%
          item2 %in% "special") # look at the words we used above
 ```
 
-
 We could run the correlation on the entire sample, which would lead to a very high number of matches, which would be hard to make sense of though.
 However, we are not usually interested in all words, but rather in broader patterns.
 So we can use the `top_words` data from above to select only the 250 most prevalent ones:
@@ -211,7 +210,7 @@ We can work with `tidygraph` to get this into a graph object:
 
 ```{r}
 highest_cor_graph <- correlations %>% 
-  filter(correlation > 0.15) %>% 
+  filter(correlation > 0.3) %>% 
   as_tbl_graph()
 highest_cor_graph
 ```
@@ -222,7 +221,7 @@ In our case the only attribute we have is the size of the correlation, stored in
 
 Using this new object we can easily plot the correlations:
 
-```{r}
+```{r ggraph}
 highest_cor_graph %>% 
   ggraph(layout = "graphopt") + #start plot
   geom_node_point(aes(color = name), size = 5, show.legend = FALSE) + # set nodes, color depends on item1, size of nodes should always be 5
@@ -230,6 +229,7 @@ highest_cor_graph %>%
   geom_node_text(aes(label = name), repel = TRUE) + #include words in our graph
   theme_void() #Set white background
 ```
+
 Using the command `ggsave`, we can save this as a PDF, which is often easier to look at with big plots, since you can zoom in:
 
 ```{r eval=FALSE}
@@ -238,7 +238,7 @@ ggsave("5_network_plot.pdf", width = 12, height = 12)
 
 Note that `ggsave` saves the last plot you did by default. Find out more about the function with `?ggsave`.
 
-Why does this matter? 
+Why does this matter?
 Sometimes the bag-of-words strategy does not work well as two words essentially for one term. Correlations are a good way to find so-called n-grams, meaning bigrams (e.g., "human_right") trigrams (e.g., "The United States") that you should concatenate before preprocessing (e.g., with `unnest_tokens`).
 Besides that, it makes the point that text data can be explored by turning it into numbers :)
 
@@ -253,8 +253,8 @@ Besides that, it makes the point that text data can be explored by turning it in
 In this section, we will use supervised machine learning (SML) to predict continuous values that are associated with text data.
 SML can be divided into two types
 
-- A* **classification** model predicts a class label or group membership.
-- A* **regression** model predicts a numeric or continuous value.
+-   A **classification** model predicts a class label or group membership.
+-   A **regression** model predicts a numeric or continuous value.
 
 Most people think about classification when they hear SML, but it is actually possible to use standard algorithms that you would usually think of as statistics to predict continuous rather than categorical variables.
 In the Iran dataset, the date comes to mind as something we could try to predict.
@@ -281,9 +281,9 @@ day_diff <- function(dates) {
 day_diff(as.Date(c("2023-01-01", "2023-02-01")))
 ```
 
-
 ```{r}
 iran_tweets_tidy_mc <- iran_tweets_tidy %>% 
+  filter(!is.na(date)) %>% # remove the 2 NA Dates
   mutate(day_nr = day_diff(date))
 
 iran_tweets_tidy_mc %>% 
@@ -330,6 +330,8 @@ We use the normal `lm()` function on the data with `day_nr` as dependant and eve
 
 ```{r}
 model <- lm(day_nr ~ ., data = select(training_data, -status_id))
+# you can run summary for fun but it will print almost all words
+# summary(model)
 ```
 
 One interesting side effect of this is that the coefficients tell us which words can be used to predict an early or late tweet:

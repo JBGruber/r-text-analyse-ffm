@@ -16,7 +16,7 @@ Importantly, we don't just trust a model as it might contain substantial biases 
 Instead, every model needs to be validated against documents with known labels before it is actually used.
 
 There are many different packages dealing with both training and validating models and they often come with a new syntax that you have to learn first.
-In this session, we will use the tidymodels framework, which wraps many common algorithms and promises to unify the sytanx.
+In this session, we will use the tidymodels framework, which wraps many common algorithms and promises to unify the syntax.
 Like the tidyverse, it is a collection of packages, rather than just one package:
 
 ![](https://jhudatascience.org/tidyversecourse/images/book_figures/simpletidymodels.png)
@@ -89,9 +89,7 @@ imdb %>%
   mutate(text_length = str_count(text ,"\\S+")) %>% 
   ggplot(aes(text_length)) +
   geom_histogram(binwidth = 50) +
-  labs(x = NULL, y = NULL, title = "NUmber of words in IMDb reviews")
-
-str_count("This is a test: what? Did you hear, me.\ntest" ,"\\S+")
+  labs(x = NULL, y = NULL, title = "Number of words in IMDb reviews")
 ```
 
 Most reviews have between 50 and 250 words, while some are significantly longer.
@@ -106,9 +104,10 @@ We proceed in 4 (or 5) steps:
 3. fitting (or training) the model 
 4. using the test set to compare predictions against the real values for validation
 5. (using the model on new documents)
+3.  fitting (or training) the model
+5.  (using the model on new documents)
 
-
-## Using `textrecipes` to turn text into features
+## Using `textrecipes` to turn text into features {#using-textrecipes-to-turn-text-into-features}
 
 Previously, we have worked with `unnest_tokens` from tidytext and removed features like stopwords with dplyr verbs.
 We abstract this one step further with `textrecipes` (an extension of the `recipes` package) which handles all preprocessing in a unified syntax.
@@ -119,7 +118,7 @@ imdb_rec <- recipe(label ~ text, data = imdb) %>%
   step_tokenize(all_predictors()) %>%
   step_stopwords(language = "en") %>% 
   step_tokenfilter(all_predictors(), min_times = 3) %>%
-  step_tfidf(all_predictors())
+  step_tf(all_predictors())
 ```
 
 This was extremly fast, because nothing has actually been done yet.
@@ -135,15 +134,17 @@ imdb_rec %>%
 You can see this looks very similar to the wide document feature matrix from before.
 But if you wanted to use the tidymodels framework for OLS or logisitc regression with survey data, the code would look almost exactly the same (just the individual steps would be different).
 
-## Splitting the dataset
+## Splitting the dataset {#splitting-the-dataset}
 
 This is just one command, but it is important:
 
 ```{r}
 set.seed(1)
-split <- initial_split(imdb, 
-                       prop = 3 / 4,   # the prop is the default, I just wanted to make that visible
-                       strata = label) # this makes sure the prevalence of labels is still the same afterwards
+split <- initial_split(
+  data = imdb, 
+  prop = 3 / 4,   # the prop is the default, I just wanted to make that visible
+  strata = label  # this makes sure the prevalence of labels is still the same afterwards
+) 
 imdb_train <- training(split)
 imdb_test <- testing(split)
 ```
@@ -153,7 +154,7 @@ Some researchers have even been caught trying many different seeds to find one t
 What you should do instead is to use the `bootstraps()` to fit multiple different combinations.
 Check out one of [Julia Silge's videos](https://youtu.be/z57i2GVcdww) if you want to learn more.
 
-## Fitting a model
+## Fitting a model {#fitting-a-model}
 
 Let's start with a naïve bayes model, for which we need another package which contains this "engine" (you don't need to know this, the next step would tell you to load the package):
 
@@ -162,7 +163,7 @@ library(discrim)
 nb_spec <- naive_Bayes() %>%
   set_mode("classification") %>%
   set_engine("naivebayes")
-```   
+```
 
 Now we bring the recipe and model together in a new workflow:
 
@@ -178,7 +179,7 @@ Now, we fit the model:
 model_nb <- fit(imdb_wf_nb, data = imdb_train)
 ```
 
-## Evaluating the model
+## Evaluating the model {#evaluating-the-model}
 
 ```{r}
 imdb_prediction <- imdb_test %>% 
@@ -203,7 +204,7 @@ my_metrics(imdb_prediction, truth = truth, estimate = estimate) %>%
   )
 ```
 
-## Alternative models
+## Alternative models {#alternative-models}
 
 and a lasso logistic regression model.
 For this we use two more packages:
@@ -236,8 +237,7 @@ my_metrics(imdb_prediction_lasso, truth = truth, estimate = estimate) %>%
   )
 ```
 
-
-## Additional step: looking inside the model
+## Additional step: looking inside the model {#additional-step-looking-inside-the-model}
 
 So the accuracy is above chance, but rather underwhelming.
 From the confusion matrix and metrics, we know that the model leans to predictiing positive, even when the true values are negative.
@@ -261,17 +261,52 @@ model_lasso %>%
   labs(y = NULL)
 ```
 
-The positive predictors make perfect sense: *great*, *well*, *good*, etc. 
-So, interestingly *bad*, *no*, and *even* are the best negative predictors, closely followed by a lot of words that hardly convey meaning. 
-This makes it interesting to see if using ngrams will help performance, as it is quite possible that combinations like *not good* would be better predictors. 
+The positive predictors make perfect sense: *great*, *well*, *good*, etc.
+So, interestingly *bad*, *no*, and *even* are the best negative predictors, closely followed by a lot of words that hardly convey meaning.
+This makes it interesting to see if using ngrams will help performance, as it is quite possible that combinations like *not good* would be better predictors.
 Have a look at the [textrecipes documentation](https://textrecipes.tidymodels.org/reference/) to see the possibilities for text preprocessing.
 
 Also, we just tried out a regularization penalty of 0.1, and it is quite possible that this is not the best choice possible.
-Thus, it is a good idea to now do some hyperparameter tuning for the regularization penalty and other parameters. 
-Take a look at the [machine learning handout](machine_learning.md) and/or the [tune documentation](https://tune.tidymodels.org/)
-to see how to do parameter tuning. 
+Thus, it is a good idea to now do some hyperparameter tuning for the regularization penalty and other parameters.
+Take a look at the [machine learning handout](machine_learning.md) and/or the [tune documentation](https://tune.tidymodels.org/) to see how to do parameter tuning.
 
-Of course, you can also try one of the other classification models in [parsnip](https://parsnip.tidymodels.org/),
-and/or try a regression model instead to predict the actual star value. 
+Of course, you can also try one of the other classification models in [parsnip](https://parsnip.tidymodels.org/), and/or try a regression model instead to predict the actual star value.
 
-# 
+# Exercise Tasks {#exercise-tasks}
+
+1.  Use a support vector machine model instead of the naive bayes or lasso regression shown above
+
+```{r}
+svm_spec <- svm_linear() %>%
+  set_mode("classification") %>%
+  set_engine("LiblineaR")
+
+imdb_wf_svm <- workflow() %>% 
+  add_recipe(imdb_rec) %>% 
+  add_model(svm_spec)
+
+model_svm <- fit(imdb_wf_svm, data = imdb_train)
+
+imdb_prediction_svm <- imdb_test %>% 
+  bind_cols(predict(model_svm, new_data = imdb_test)) %>% 
+  rename(truth = label, estimate = .pred_class)
+
+my_metrics(imdb_prediction_svm, truth = truth, estimate = estimate) %>% 
+  gt() %>% 
+  data_color(
+    columns = .estimate,
+    colors = scales::col_numeric(
+      palette = c("red", "orange", "green"),
+      domain = c(0, 1)
+    )
+  )
+```
+
+2.  What would be the steps and functions you need to predict the party membership of a president in the SOTU addresses data?
+
+1.  preprocessing the incoming text: using steps from `textrecipes`
+2.  splitting the dataset into training and a test set (which is not included in the model and just used for validation): using the `split` function
+3.  fitting (or training) the model: choosing a model spec and adding it to the workflow
+4.  using the test set to compare predictions against the real values for validation
+
+<https://online-eval.studiumdigitale.uni-frankfurt.de/evasys/online.php?p=Womeps2023TN>
